@@ -7,15 +7,15 @@
 
 A cutting-edge personal portfolio website built with **Astro**, **React**, and **TailwindCSS**. This project showcases a modern, responsive design with a unique "Hacker Terminal" simulation feature, bridging the gap between professional presentation and geek culture.
 
-## 🌟 Key Features
+## Key Features
 
-### 🎨 Modern UI/UX
+### Modern UI/UX
 - **Responsive Design**: Fully optimized for mobile, tablet, and desktop devices.
 - **Dark/Light Mode**: Seamless theme switching for better readability.
 - **Glassmorphism Effects**: Modern visual aesthetics with backdrop blurs and gradients.
 - **Interactive Components**: Smooth transitions and hover effects powered by TailwindCSS.
 
-### 💻 Hacker Terminal Simulation (`/terminal`)
+### Hacker Terminal Simulation (`/terminal`)
 An immersive CLI experience embedded directly into the website:
 - **Command System**:
   - `SCAN`: Visual vulnerability scanning simulation with HTML rendering.
@@ -26,12 +26,12 @@ An immersive CLI experience embedded directly into the website:
 - **Quantum AI Integration**: "Talk" to a simulated Quantum AI with philosophical outputs.
 - **Real-time Feedback**: Typing sounds, dynamic logs, and state management.
 
-### 📝 Content Management
+### Content Management
 - **Markdown/MDX Support**: Write articles and project details using standard Markdown.
 - **Keystatic CMS**: Integrated headless CMS for easy content management without touching code.
 - **Dynamic Collections**: Automated routing and page generation for projects and articles.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Framework**: [Astro 5.0](https://astro.build/) - The web framework for content-driven websites.
 - **UI Library**: [React 19](https://react.dev/) - For complex interactive components.
@@ -39,7 +39,7 @@ An immersive CLI experience embedded directly into the website:
 - **Icons**: [Iconify](https://iconify.design/) - Huge library of open-source icons.
 - **CMS**: [Keystatic](https://keystatic.com/) - Git-based CMS for Astro.
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js 18+ installed on your machine.
@@ -64,7 +64,7 @@ An immersive CLI experience embedded directly into the website:
     ```
     Open `http://localhost:4321` in your browser.
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 /
@@ -81,7 +81,7 @@ An immersive CLI experience embedded directly into the website:
 └── astro.config.mjs    # Astro configuration
 ```
 
-## 🎮 Terminal Commands Cheat Sheet
+## Terminal Commands Cheat Sheet
 
 | Command | Description |
 | :--- | :--- |
@@ -93,7 +93,7 @@ An immersive CLI experience embedded directly into the website:
 | `MATRIX` | Toggle Matrix rain effect |
 | `CLEAR` | Clear terminal screen |
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
@@ -103,11 +103,11 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4.  Push to the Branch (`git push origin feature/AmazingFeature`)
 5.  Open a Pull Request
 
-## 📄 License
+## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
-## 👤 Author
+## Author
 
 **Arif Susilo**
 - Email: arif.susilo@gmail.com
