@@ -26,6 +26,11 @@ export default defineConfig({
   // Pastikan output tetap static (default di Astro 5 yang mendukung hybrid)
   output: 'static',
 
+  server: {
+    host: true,
+    port: 4321
+  },
+
   adapter: node({
     mode: 'standalone',
   }),
