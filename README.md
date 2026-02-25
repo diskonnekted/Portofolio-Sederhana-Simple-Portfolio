@@ -1,9 +1,9 @@
 # Simple Portfolio & Terminal Simulator
 
-![Astro](https://img.shields.io/badge/Astro-5.0-orange?style=for-the-badge&logo=astro)
-![React](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.0-38B2AC?style=for-the-badge&logo=tailwind-css)
-![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
+![Astro](https://img.shields.io/badge/Astro-000000?style=for-the-badge&logo=astro&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-000000?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Active-333333?style=for-the-badge)
 
 A cutting-edge personal portfolio website built with **Astro**, **React**, and **TailwindCSS**. This project showcases a modern, responsive design with a unique "Hacker Terminal" simulation feature, bridging the gap between professional presentation and geek culture.
 
