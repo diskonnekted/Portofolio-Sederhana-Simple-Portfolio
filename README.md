@@ -1,4 +1,4 @@
-# PondokRejo Next - Modern Portfolio & Terminal Simulation
+# Simple Portfolio & Terminal Simulator
 
 ![Astro](https://img.shields.io/badge/Astro-5.0-orange?style=for-the-badge&logo=astro)
 ![React](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)
