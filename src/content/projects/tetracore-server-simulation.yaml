@@ -1,0 +1,15 @@
+title: Tetracore Server Simulation
+image: /images/projects/tetracore-server-simulation/image.jpg
+description: >-
+  Tetracore Server Simulation adalah implementasi interaktif dari teori Methane
+  Metauniverse (MMU) yang dikembangkan oleh Jürgen Wollbold. Aplikasi ini
+  mensimulasikan sistem stabilisasi Counter-Tetrahedron Pairing di mana realitas
+  dimodelkan sebagai struktur geometris yang terdiri dari tetrahedron.
+tags:
+  - Vue.js
+  - WebSockets
+  - D3.js
+  - Redis
+github: https://github.com/diskonnekted/Tetrahedron-Monitor
+demo: https://tetra-universe.preview.emergentagent.com/
+imageClass: bg-gradient-to-br from-emerald-500 to-teal-600

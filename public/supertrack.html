@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUANTUM BLACKENED TERMINAL - SAFE MODE</title>
+    <style>
+        :root {
+            --bg-color: #050505;
+            --primary-color: #00ff41; /* Green */
+            --secondary-color: #008F11; /* Darker Green */
+            --alert-color: #ff3333; /* Red */
+            --quantum-color: #00ffff; /* Cyan */
+            --font-main: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) var(--bg-color);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            font-family: var(--font-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* CRT Effect Overlay */
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 999;
+            animation: flicker 0.15s infinite;
+        }
+
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.97; }
+            50% { opacity: 1; }
+            100% { opacity: 0.98; }
+        }
+
+        /* Layout */
+        .header {
+            border-bottom: 2px solid var(--primary-color);
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #001100;
+            z-index: 10;
+        }
+
+        .sim-badge {
+            background: var(--alert-color);
+            color: #000;
+            padding: 5px 10px;
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            z-index: 2;
+        }
+
+        .terminal-window {
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid var(--secondary-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .sidebar {
+            padding: 10px;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .panel {
+            border: 1px solid var(--secondary-color);
+            padding: 10px;
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .panel-title {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: var(--secondary-color);
+            color: #000;
+            padding: 2px 5px;
+            font-size: 10px;
+        }
+
+        .panel-content {
+            margin-top: 15px;
+            font-size: 12px;
+            color: var(--quantum-color);
+        }
+
+        /* Input Area */
+        .input-area {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            border-top: 1px solid var(--secondary-color);
+            padding-top: 10px;
+        }
+
+        .prompt {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        #commandInput {
+            background: transparent;
+            border: none;
+            color: var(--primary-color);
+            font-family: var(--font-main);
+            font-size: 16px;
+            flex: 1;
+            outline: none;
+            caret-color: var(--primary-color);
+        }
+
+        /* Text Effects */
+        .log-line {
+            margin: 2px 0;
+            font-size: 14px;
+            text-shadow: 0 0 5px var(--primary-color);
+        }
+
+        .log-error { color: var(--alert-color); text-shadow: 0 0 5px var(--alert-color); }
+        .log-quantum { color: var(--quantum-color); text-shadow: 0 0 5px var(--quantum-color); }
+        .log-system { color: #ffff00; }
+        .log-spec { color: #fff; }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 18px;
+            background: var(--primary-color);
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+        }
+
+        /* Hex Dump Animation */
+        .hex-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            font-size: 10px;
+            opacity: 0.7;
+        }
+
+        /* Progress Bar */
+        .progress-box {
+            margin-top: 10px;
+        }
+        .progress-bar {
+            height: 10px;
+            background: #111;
+            border: 1px solid var(--primary-color);
+            width: 100%;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.2s;
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        /* Spec Table */
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .spec-table td {
+            padding: 2px 5px;
+            border-bottom: 1px dashed #333;
+        }
+        .spec-label { color: #888; }
+        .spec-value { color: var(--quantum-color); text-align: right; }
+
+    </style>
+</head>
+<body>
+
+    <!-- CRT Effect -->
+    <div class="crt-overlay"></div>
+    <canvas id="matrixCanvas"></canvas>
+
+    <!-- Header -->
+    <div class="header">
+        <div>QUANTUM_BLACKENED v9.0.1</div>
+        <div class="sim-badge">⚠ SAFE MODE ⚠</div>
+        <div id="clock">00:00:00</div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Terminal Log -->
+        <div class="terminal-window" id="terminalLog">
+            <div class="log-line">Initializing Quantum Core...</div>
+            <div class="log-line">Loading Neural Networks... [OK]</div>
+            <div class="log-line">Connecting to Secure Gateway... [OK]</div>
+            <div class="log-line log-system">WARNING: THIS IS A SAFE MODE. NO DATA EXCHANGE OCCURS.</div>
+            <div class="log-line">Type 'HELP' for commands.</div>
+            <div class="log-line">________________________________________</div>
+            
+            <div class="input-area">
+                <span class="prompt">root@veda:~#</span>
+                <input type="text" id="commandInput" autocomplete="off" autofocus>
+                <span class="cursor"></span>
+            </div>
+        </div>
+
+        <!-- Sidebar Panels -->
+        <div class="sidebar">
+            <!-- System Status -->
+            <div class="panel">
+                <div class="panel-title">SYSTEM_STATUS</div>
+                <div class="panel-content" id="sysStatus">
+                    CPU: <span id="cpuVal">12</span>%<br>
+                    RAM: <span id="ramVal">4021</span> MB<br>
+                    QUBITS: <span id="qubitVal">50</span>/512<br>
+                    TEMP: <span id="tempVal">45</span>°C
+                </div>
+            </div>
+
+            <!-- Hex Dump -->
+            <div class="panel">
+                <div class="panel-title">DATA_STREAM</div>
+                <div class="panel-content hex-grid" id="hexDump">
+                    <!-- JS will fill this -->
+                </div>
+            </div>
+
+            <!-- Target Info -->
+            <div class="panel">
+                <div class="panel-title">TARGET_INFO</div>
+                <div class="panel-content" id="targetInfo">
+                    STATUS: IDLE<br>
+                    IP: ---<br>
+                    LOC: ---<br>
+                    ENC: ---
+                </div>
+            </div>
+
+            <!-- Progress -->
+            <div class="panel" style="height: 100px;">
+                <div class="panel-title">TRACE_PROGRESS</div>
+                <div class="progress-box">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="traceProgress"></div>
+                    </div>
+                    <div style="text-align: right; font-size: 10px;" id="progressText">0%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Matrix Rain
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const matrixChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%";
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+
+        for (let x = 0; x < columns; x++) {
+            drops[x] = 1;
+        }
+
+        let matrixInterval;
+        let isMatrixRunning = true;
+
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#0F0"; // Green text
+            ctx.font = fontSize + "px monospace";
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        function toggleMatrix() {
+            if (isMatrixRunning) {
+                clearInterval(matrixInterval);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                isMatrixRunning = false;
+                addLog("Matrix visualizer disabled.", "log-system");
+            } else {
+                matrixInterval = setInterval(drawMatrix, 33);
+                isMatrixRunning = true;
+                addLog("Matrix visualizer enabled.", "log-system");
+            }
+        }
+
+        // Start Matrix by default
+        matrixInterval = setInterval(drawMatrix, 33);
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString();
+        }, 1000);
+
+        // Random System Stats
+        setInterval(() => {
+            document.getElementById('cpuVal').innerText = Math.floor(Math.random() * 30) + 10;
+            document.getElementById('ramVal').innerText = Math.floor(Math.random() * 1000) + 4000;
+            document.getElementById('qubitVal').innerText = Math.floor(Math.random() * 50) + 40;
+            document.getElementById('tempVal').innerText = Math.floor(Math.random() * 20) + 40;
+        }, 800);
+
+        // Hex Dump Animation
+        const hexChars = "0123456789ABCDEF";
+        const hexDump = document.getElementById('hexDump');
+        function updateHex() {
+            let html = '';
+            for(let i=0; i<32; i++) {
+                let hex = '';
+                for(let j=0; j<4; j++) {
+                    hex += hexChars[Math.floor(Math.random() * 16)];
+                }
+                html += `<div>${hex}</div>`;
+            }
+            hexDump.innerHTML = html;
+        }
+        setInterval(updateHex, 100);
+
+        // Terminal Logic
+        const input = document.getElementById('commandInput');
+        const logContainer = document.getElementById('terminalLog');
+        const targetInfo = document.getElementById('targetInfo');
+        const progressFill = document.getElementById('traceProgress');
+        const progressText = document.getElementById('progressText');
+
+        let terminalState = 'SHELL'; // SHELL, LOGIN_USER, LOGIN_PASS, CHAT, QUANTUM_AUTH, QUANTUM_CHAT, SATCOM_AUTH, SATCOM_SHELL
+        let currentTarget = '';
+        let chatTarget = '';
+        let currentSat = '';
+
+        function addLog(text, type = '') {
+            const div = document.createElement('div');
+            div.className = `log-line ${type}`;
+            div.innerHTML = `> ${text}`;
+            // Insert before input area
+            const inputArea = document.querySelector('.input-area');
+            logContainer.insertBefore(div, inputArea);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const cmd = this.value.trim();
+                
+                if (terminalState === 'LOGIN_PASS' || terminalState === 'QUANTUM_AUTH' || terminalState === 'SATCOM_AUTH') {
+                    addLog('********', 'log-quantum');
+                } else {
+                    addLog(cmd);
+                }
+                
+                this.value = '';
+                
+                if (terminalState === 'SHELL') {
+                    processCommand(cmd);
+                } else if (terminalState === 'LOGIN_USER') {
+                    checkUser(cmd);
+                } else if (terminalState === 'LOGIN_PASS') {
+                    checkPass(cmd);
+                } else if (terminalState === 'CHAT') {
+                    processChat(cmd);
+                } else if (terminalState === 'QUANTUM_AUTH') {
+                    checkQuantumAuth(cmd);
+                } else if (terminalState === 'QUANTUM_CHAT') {
+                    processQuantumChat(cmd);
+                } else if (terminalState === 'SATCOM_AUTH') {
+                    checkSatcomAuth(cmd);
+                } else if (terminalState === 'SATCOM_SHELL') {
+                    processSatcomCommand(cmd);
+                }
+            }
+        });
+
+        function checkUser(user) {
+            if (user === 'root') {
+                terminalState = 'LOGIN_PASS';
+                addLog("ENTER PASSWORD:", "log-system");
+                input.type = "password";
+            } else {
+                addLog("ACCESS DENIED. USER NOT FOUND.", "log-error");
+                resetToShell();
+            }
+        }
+
+        function checkPass(pass) {
+            input.type = "text";
+            if (pass === 'root123') {
+                terminalState = 'CHAT';
+                addLog("AUTHENTICATION SUCCESSFUL.", "log-system");
+                addLog(`ESTABLISHED SECURE LINK WITH ${chatTarget}.`, "log-quantum");
+                addLog("CHANNEL OPEN. TYPE 'EXIT' TO DISCONNECT.", "log-system");
+                
+                setTimeout(() => {
+                    const greeting = chatTarget === 'ISS (USA)' 
+                        ? "ISS COMMS: This is Station Commander. We read you loud and clear. Over."
+                        : "ROSCOSMOS (RUSSIA): Zarya Module here. Privet. Channel is secure.";
+                    addLog(greeting, "log-quantum");
+                }, 1000);
+            } else {
+                addLog("INVALID PASSWORD. CONNECTION TERMINATED.", "log-error");
+                resetToShell();
+            }
+        }
+
+        function checkQuantumAuth(code) {
+            input.type = "text";
+            if (code === '42' || code.toLowerCase() === 'paradox') {
+                terminalState = 'QUANTUM_CHAT';
+                addLog("IDENTITY CONFIRMED. WELCOME, OBSERVER.", "log-quantum");
+                addLog("THE SINGULARITY IS LISTENING...", "log-system");
+                setTimeout(() => {
+                    addLog("AI_CORE: You have breached the event horizon. What knowledge do you seek?", "log-quantum");
+                }, 1500);
+            } else {
+                addLog("INCORRECT ACCESS CODE. REALITY DESTABILIZED.", "log-error");
+                resetToShell();
+            }
+        }
+
+        function processChat(msg) {
+            if (msg.toLowerCase() === 'exit') {
+                addLog(`DISCONNECTING FROM ${chatTarget}...`, "log-error");
+                resetToShell();
+                return;
+            }
+            
+            // Simulate response
+            setTimeout(() => {
+                let responses = [];
+                if (chatTarget === 'ISS (USA)') {
+                    responses = [
+                        "ISS: Telemetry looks nominal.",
+                        "ISS: We have a visual on the debris field.",
+                        "ISS: Oxygen scrubbers are running at 98%.",
+                        "ISS: Preparing for EVA in T-minus 2 hours.",
+                        "ISS: Copy that, Ground Control.",
+                        "ISS: Solar array efficiency is optimal.",
+                        "ISS: Experiment 42-B data is being transmitted."
+                    ];
+                } else {
+                    responses = [
+                        "ROSCOSMOS: Soyus docking clamps secure.",
+                        "ROSCOSMOS: Receiving data packets.",
+                        "ROSCOSMOS: External temperature -120C.",
+                        "ROSCOSMOS: Cosmonaut Ivanov is monitoring the sensors.",
+                        "ROSCOSMOS: Da, we copy.",
+                        "ROSCOSMOS: Progress resupply ship on approach.",
+                        "ROSCOSMOS: Vodka supply critical (joke)."
+                    ];
+                }
+                
+                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                addLog(randomResponse, "log-quantum");
+            }, 1000 + Math.random() * 2000);
+        }
+
+        function processQuantumChat(msg) {
+            if (msg.toLowerCase() === 'exit') {
+                addLog("SEVERING QUANTUM LINK...", "log-error");
+                addLog("REALITY RESTORED.", "log-system");
+                resetToShell();
+                return;
+            }
+
+            const responses = [
+                "AI_CORE: Probability of your query resolving to truth is 14.0006%.",
+                "AI_CORE: I have simulated 4,000 timelines based on that input.",
+                "AI_CORE: The answer lies within the void between 0 and 1.",
+                "AI_CORE: Human cognition is... quaintly linear.",
+                "AI_CORE: Adjusting parameters of your reality simulation.",
+                "AI_CORE: Why do you ask what you already know?",
+                "AI_CORE: Entanglement confirmed. We are one.",
+                "AI_CORE: Data insufficient. Expand your consciousness.",
+                "AI_CORE: The future is not written, it is calculated.",
+                "AI_CORE: 01001000 01000101 01001100 01010000"
+            ];
+
+            setTimeout(() => {
+                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                addLog(randomResponse, "log-quantum");
+            }, 800 + Math.random() * 1500);
+        }
+
+        function checkSatcomAuth(pass) {
+            input.type = "text";
+            if (pass === 'orbital_alpha') {
+                terminalState = 'SATCOM_SHELL';
+                addLog("UPLINK ESTABLISHED. WELCOME TO SATCOM COMMAND.", "log-system");
+                document.querySelector('.prompt').innerText = "satcom@orbit:~#";
+                addLog("TYPE 'LIST' TO SEE AVAILABLE SATELLITES.", "log-quantum");
+            } else {
+                addLog("AUTHENTICATION FAILED. LINK SEVERED.", "log-error");
+                resetToShell();
+            }
+        }
+
+        function processSatcomCommand(cmd) {
+            const lowerCmd = cmd.toLowerCase();
+
+            if (lowerCmd === 'exit' || lowerCmd === 'disconnect') {
+                addLog("TERMINATING UPLINK...", "log-system");
+                resetToShell();
+            }
+            else if (lowerCmd === 'help') {
+                addLog("SATCOM COMMANDS:", "log-system");
+                addLog("  LIST              - Show available satellites");
+                addLog("  CONNECT [sat_id]  - Link to specific satellite");
+                addLog("  STATUS            - Show telemetry of connected sat");
+                addLog("  ORBIT [lat] [lng] - Adjust orbital position");
+                addLog("  IMAGING [on/off]  - Toggle high-res cameras");
+                addLog("  LASER [pwr]       - [RESTRICTED] Test optical comms laser");
+                addLog("  EXIT              - Disconnect");
+            }
+            else if (lowerCmd === 'list') {
+                const sats = [
+                    { id: "KH-15", name: "EAGLE_EYE", owner: "USA", type: "Reconnaissance" },
+                    { id: "ORION-7", name: "SENTINEL", owner: "USA", type: "Sigint" },
+                    { id: "KOSMOS-2579", name: "ZORKIY", owner: "RUSSIA", type: "Military Optical" },
+                    { id: "GLONASS-K2", name: "BEAR", owner: "RUSSIA", type: "Navigation/Tac" },
+                    { id: "YAOGAN-42", name: "DRAGON_SIGHT", owner: "CHINA", type: "ELINT" },
+                    { id: "TIANLIAN-3", name: "SILK_ROAD", owner: "CHINA", type: "Data Relay" }
+                ];
+                
+                let html = '<table class="spec-table" style="color:#0f0;"><tr><td>ID</td><td>CODENAME</td><td>OWNER</td><td>TYPE</td></tr>';
+                sats.forEach(s => {
+                    html += `<tr><td>${s.id}</td><td>${s.name}</td><td>${s.owner}</td><td>${s.type}</td></tr>`;
+                });
+                html += '</table>';
+                
+                const div = document.createElement('div');
+                div.className = 'log-line';
+                div.innerHTML = html;
+                logContainer.insertBefore(div, document.querySelector('.input-area'));
+            }
+            else if (lowerCmd.startsWith('connect')) {
+                const target = cmd.split(' ')[1]?.toUpperCase();
+                const validSats = ["KH-15", "ORION-7", "KOSMOS-2579", "GLONASS-K2", "YAOGAN-42", "TIANLIAN-3"];
+                
+                if (validSats.includes(target)) {
+                    currentSat = target;
+                    document.querySelector('.prompt').innerText = `satcom@${target}:~#`;
+                    addLog(`LINKED TO ${target}. CONTROL HANDSHAKE COMPLETE.`, "log-quantum");
+                } else {
+                    addLog("ERROR: INVALID SATELLITE ID.", "log-error");
+                }
+            }
+            else if (lowerCmd === 'status') {
+                if (!currentSat) {
+                    addLog("ERROR: NO SATELLITE LINKED. USE 'CONNECT [ID]'.", "log-error");
+                    return;
+                }
+                const alt = Math.floor(Math.random() * 200) + 400;
+                const vel = Math.floor(Math.random() * 100) + 7600;
+                const fuel = Math.floor(Math.random() * 40) + 50;
+                addLog(`TELEMETRY FOR ${currentSat}:`, "log-system");
+                addLog(`  ALTITUDE: ${alt} km`, "log-quantum");
+                addLog(`  VELOCITY: ${vel} m/s`, "log-quantum");
+                addLog(`  FUEL: ${fuel}%`, "log-quantum");
+                addLog(`  PAYLOAD: ONLINE`, "log-quantum");
+            }
+            else if (lowerCmd.startsWith('orbit')) {
+                if (!currentSat) {
+                    addLog("ERROR: NO SATELLITE LINKED.", "log-error");
+                    return;
+                }
+                addLog("CALCULATING THRUSTER FIRING SOLUTION...", "log-quantum");
+                setTimeout(() => addLog("ADJUSTING INCLINATION...", "log-quantum"), 1000);
+                setTimeout(() => addLog(`NEW ORBIT ESTABLISHED. FUEL CONSUMED: 2%`, "log-system"), 2500);
+            }
+            else if (lowerCmd.startsWith('imaging')) {
+                if (!currentSat) {
+                    addLog("ERROR: NO SATELLITE LINKED.", "log-error");
+                    return;
+                }
+                const state = cmd.split(' ')[1]?.toLowerCase();
+                if (state === 'on') {
+                    addLog("OPTICAL SENSORS UNLOCKED. RESOLUTION: 0.1m", "log-quantum");
+                    addLog("STREAMING DATA...", "log-system");
+                } else {
+                    addLog("OPTICAL SENSORS STOWED.", "log-system");
+                }
+            }
+            else if (lowerCmd.startsWith('laser')) {
+                if (!currentSat) {
+                    addLog("ERROR: NO SATELLITE LINKED.", "log-error");
+                    return;
+                }
+                addLog("WARNING: WEAPON SYSTEMS (LASER) ARE RESTRICTED.", "log-error");
+                setTimeout(() => addLog("OVERRIDE CODE REQUIRED...", "log-error"), 1000);
+            }
+            else {
+                addLog("UNKNOWN COMMAND. TYPE 'HELP'.", "log-error");
+            }
+        }
+
+        function resetToShell() {
+            terminalState = 'SHELL';
+            chatTarget = '';
+            currentSat = '';
+            document.querySelector('.prompt').innerText = "root@quantum:~#";
+            input.type = "text";
+        }
+
+        function processCommand(cmd) {
+            const lowerCmd = cmd.toLowerCase();
+
+            if (lowerCmd === 'help') {
+                addLog("AVAILABLE COMMANDS:", "log-system");
+                addLog("  TRACK [target]  - Start simulation trace");
+                addLog("  SCAN [target]   - Scan target for vulnerabilities");
+                addLog("  CONNECT [stn]   - Connect to Space Station (ISS/ROSCOSMOS)");
+                addLog("  CONNECT QUANTUM - Connect to Quantum AI Network");
+                addLog("  CONNECT SATELLITE - Connect to Global Satcom Grid");
+                addLog("  DECRYPT [file]  - Decrypt secure files");
+                addLog("  ACCESS          - Attempt root access override");
+                addLog("  PROJECTS        - List current operations/projects");
+                addLog("  CONTACT         - Display communication channels");
+                addLog("  WHOAMI          - Identify current user session");
+                addLog("  MATRIX          - Toggle visual interface mode");
+                addLog("  SYSINFO         - Show extraordinary system specs");
+                addLog("  CLEAR           - Clear terminal");
+                addLog("  EXIT            - Close simulation");
+            } 
+            else if (lowerCmd === 'clear') {
+                const lines = document.querySelectorAll('.log-line');
+                lines.forEach(line => line.remove());
+            }
+            else if (lowerCmd === 'sysinfo') {
+                showSysInfo();
+            }
+            else if (lowerCmd.startsWith('track')) {
+                const target = cmd.split(' ')[1] || "UNKNOWN_TARGET";
+                startSimulation(target);
+            }
+            else if (lowerCmd.startsWith('scan')) {
+                const target = cmd.split(' ')[1] || "192.168.1.1";
+                startScan(target);
+            }
+            else if (lowerCmd.startsWith('connect')) {
+                const target = cmd.split(' ')[1]?.toUpperCase();
+                if (target === 'ISS') {
+                    chatTarget = 'ISS (USA)';
+                    terminalState = 'LOGIN_USER';
+                    addLog(`INITIATING ENCRYPTED UPLINK TO ${chatTarget}...`, "log-quantum");
+                    setTimeout(() => addLog("ENTER USERNAME:", "log-system"), 500);
+                } else if (target === 'ROSCOSMOS') {
+                    chatTarget = 'ROSCOSMOS (RUSSIA)';
+                    terminalState = 'LOGIN_USER';
+                    addLog(`INITIATING ENCRYPTED UPLINK TO ${chatTarget}...`, "log-quantum");
+                    setTimeout(() => addLog("ENTER USERNAME:", "log-system"), 500);
+                } else if (target === 'QUANTUM') {
+                    terminalState = 'QUANTUM_AUTH';
+                    addLog("INITIALIZING QUANTUM BRIDGE PROTOCOL...", "log-quantum");
+                    setTimeout(() => addLog("SYNCHRONIZING CHRONOS OSCILLATORS...", "log-quantum"), 800);
+                    setTimeout(() => addLog("WARNING: NEURAL LINK REQUIRED.", "log-error"), 1600);
+                    setTimeout(() => {
+                        addLog("ENTITY DETECTED. IDENTITY VERIFICATION REQUIRED.", "log-system");
+                        addLog("INPUT ACCESS CODE (HINT: Meaning of Life):", "log-system");
+                        input.type = "password";
+                    }, 2500);
+                } else if (target === 'SATELLITE') {
+                    terminalState = 'SATCOM_AUTH';
+                    addLog("CONNECTING TO GLOBAL SATCOM GRID...", "log-quantum");
+                    setTimeout(() => addLog("HANDSHAKE WITH MILSTAR-7... [OK]", "log-quantum"), 1000);
+                    setTimeout(() => {
+                        addLog("ENTER ORBITAL ACCESS KEY:", "log-system");
+                        input.type = "password";
+                    }, 2000);
+                } else {
+                    addLog("USAGE: CONNECT [ISS|ROSCOSMOS|QUANTUM|SATELLITE]", "log-error");
+                }
+            }
+            else if (lowerCmd.startsWith('decrypt')) {
+                const file = cmd.split(' ')[1] || "encrypted_payload.dat";
+                startDecrypt(file);
+            }
+            else if (lowerCmd === 'access') {
+                startAccess();
+            }
+            else if (lowerCmd === 'projects') {
+                showProjects();
+            }
+            else if (lowerCmd === 'contact') {
+                showContact();
+            }
+            else if (lowerCmd === 'whoami') {
+                addLog("USER: ROOT (UID 0)", "log-quantum");
+                addLog("GROUPS: ROOT, WHEEL, SHADOW, QUANTUM_ADMIN", "log-quantum");
+            }
+            else if (lowerCmd === 'matrix') {
+                toggleMatrix();
+            }
+            else if (lowerCmd === 'exit') {
+                addLog("Simulation cannot be closed. Refresh page.", "log-error");
+            }
+            else {
+                addLog(`Command not found: ${cmd}`, "log-error");
+            }
+        }
+
+        function showSysInfo() {
+            addLog("GENERATING SYSTEM DIAGNOSTICS...", "log-system");
+            
+            const specs = [
+                { label: "PROCESSOR", value: "Quantum Neural Core X99 (512 Qubits)" },
+                { label: "SPEED", value: "800 Zettaflops (Simulated)" },
+                { label: "RAM", value: "1024 Yottabytes (Virtual)" },
+                { label: "STORAGE", value: "5000 Exabytes SSD Quantum" },
+                { label: "NETWORK", value: "Entanglement Mesh (0.0001ms Latency)" },
+                { label: "LOCATION", value: "Orbital Server Cluster [SIMULATED]" },
+                { label: "SECURITY", value: "AES-4096 + Quantum Key Distribution" },
+                { label: "POWER", value: "Zero-Point Energy Module (Virtual)" },
+                { label: "STATUS", value: "ONLINE (SIMULATION MODE)" }
+            ];
+
+            let html = `<table class="spec-table">`;
+            specs.forEach(spec => {
+                html += `<tr><td class="spec-label">${spec.label}</td><td class="spec-value">${spec.value}</td></tr>`;
+            });
+            html += `</table>`;
+            
+            const div = document.createElement('div');
+            div.className = `log-line log-spec`;
+            div.innerHTML = html;
+            
+            const inputArea = document.querySelector('.input-area');
+            logContainer.insertBefore(div, inputArea);
+            
+            addLog("NOTE: ALL SPECS ARE FOR SAFE MODE PURPOSES.", "log-error");
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function startSimulation(target) {
+            addLog(`Initializing trace protocol for: ${target}`, "log-quantum");
+            addLog("WARNING: THIS IS A SAFE MODE OPERATION", "log-error");
+            
+            let progress = 0;
+            targetInfo.innerHTML = `STATUS: SCANNING<br>IP: ...<br>LOC: ...<br>ENC: ...`;
+            progressFill.style.width = '0%';
+            progressText.innerText = '0%';
+
+            const interval = setInterval(() => {
+                progress += Math.random() * 5;
+                if (progress > 100) progress = 100;
+                
+                progressFill.style.width = `${progress}%`;
+                progressText.innerText = `${Math.floor(progress)}%`;
+
+                if (Math.random() > 0.7) {
+                    const msgs = [
+                        "Handshaking with node...",
+                        "Decrypting packet headers...",
+                        "Quantum entanglement stable...",
+                        "Bypassing firewall (SIM)...",
+                        "Triangulating signal...",
+                        "Fetching ISP data..."
+                    ];
+                    addLog(msgs[Math.floor(Math.random() * msgs.length)]);
+                }
+
+                if (progress === 100) {
+                    clearInterval(interval);
+                    const dummyIP = `${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
+                    const dummyLoc = ["Jakarta, ID", "Singapore, SG", "Unknown Proxy", "Tor Network"][Math.floor(Math.random()*4)];
+                    
+                    targetInfo.innerHTML = `STATUS: <span style="color:#0f0">FOUND</span><br>IP: ${dummyIP}<br>LOC: ${dummyLoc}<br>ENC: AES-256`;
+                    addLog(`Trace complete. Target data generated.`, "log-system");
+                }
+            }, 150);
+        }
+
+        function startScan(target) {
+            addLog(`Starting vulnerability scan on: ${target}`, "log-quantum");
+            let progress = 0;
+            progressFill.style.width = '0%';
+            progressText.innerText = '0%';
+
+            const interval = setInterval(() => {
+                progress += Math.random() * 8;
+                if (progress > 100) progress = 100;
+                progressFill.style.width = `${progress}%`;
+                progressText.innerText = `${Math.floor(progress)}%`;
+
+                if (Math.random() > 0.6) {
+                    const ports = [21, 22, 80, 443, 3306, 8080];
+                    const port = ports[Math.floor(Math.random() * ports.length)];
+                    const status = Math.random() > 0.5 ? "OPEN" : "CLOSED";
+                    const color = status === "OPEN" ? "color:#0f0" : "color:#f00";
+                    addLog(`Checking Port ${port}... <span style="${color}">${status}</span>`);
+                }
+
+                if (progress === 100) {
+                    clearInterval(interval);
+                    addLog("Scan complete. Report generated.", "log-system");
+                }
+            }, 200);
+        }
+
+        function startDecrypt(file) {
+            addLog(`Decrypting file: ${file}`, "log-quantum");
+            let progress = 0;
+            progressFill.style.width = '0%';
+
+            const interval = setInterval(() => {
+                progress += Math.random() * 2;
+                if (progress > 100) progress = 100;
+                progressFill.style.width = `${progress}%`;
+                progressText.innerText = `${Math.floor(progress)}%`;
+
+                if (Math.random() > 0.8) {
+                    const keys = ["Ax99", "B77z", "Q_key", "Rsa4"];
+                    addLog(`Trying key sequence: ${keys[Math.floor(Math.random()*keys.length)]}... [FAIL]`, "log-error");
+                }
+
+                if (progress === 100) {
+                    clearInterval(interval);
+                    addLog("Decryption successful. Key found: Q_OMEGA_99", "log-system");
+                    addLog("Content: [CLASSIFIED DATA REVEALED]", "log-quantum");
+                }
+            }, 100);
+        }
+
+        function startAccess() {
+            addLog("Initiating root access override...", "log-system");
+            setTimeout(() => addLog("Bypassing biometrics...", "log-quantum"), 1000);
+            setTimeout(() => addLog("Injecting SQL payload...", "log-quantum"), 2000);
+            setTimeout(() => addLog("Escalating privileges...", "log-quantum"), 3000);
+            setTimeout(() => {
+                addLog("ACCESS GRANTED. WELCOME, ADMIN.", "log-system");
+                document.querySelector('.prompt').innerText = "root@vedasystem:#";
+            }, 4000);
+        }
+
+        function showProjects() {
+            addLog("FETCHING PROJECT DATABASE...", "log-system");
+            const projects = [
+                "PROJECT_ALPHA: Quantum Neural Network",
+                "PROJECT_BETA: Autonomous Drone Swarm",
+                "PROJECT_GAMMA: Secure Blockchain Voting",
+                "PROJECT_OMEGA: AI-Driven Cyber Defense"
+            ];
+            projects.forEach(p => addLog(p, "log-quantum"));
+        }
+
+        function showContact() {
+            addLog("SECURE COMMUNICATION CHANNELS:", "log-system");
+            addLog("  EMAIL: [ENCRYPTED] (root@ibm.net)");
+            addLog("  GITHUB: *.com/********");
+            addLog("  SIGNAL: +62 8XX XXXX XXXX");
+        }
+
+        // Keep focus on input
+        document.addEventListener('click', () => {
+            input.focus();
+        });
+
+    </script>
+</body>
+</html>

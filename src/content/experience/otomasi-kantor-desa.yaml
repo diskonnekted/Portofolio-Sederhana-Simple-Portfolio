@@ -1,0 +1,4 @@
+role: "Full Stack Developer"
+company: "Village Office Project"
+period: "Dec 2025"
+description: "Built 'Otomasi Kantor Desa', a comprehensive dashboard for monitoring village office utilities and services. Utilizes PHP/SQLite for the backend with Server-Sent Events (SSE) for real-time energy and sensor data streaming."

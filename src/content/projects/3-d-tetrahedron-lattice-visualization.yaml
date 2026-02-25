@@ -1,0 +1,16 @@
+title: 3D Tetrahedron Lattice Visualization
+image: /images/projects/3-d-tetrahedron-lattice-visualization/image.jpg
+description: >-
+  This application provides real-time, interactive 3D visualization of various
+  tetrahedral lattice structures, allowing researchers and enthusiasts to
+  explore the spatial relationships and network properties inherent in the
+  Methane Metauniverse (MMU) theory.
+tags:
+  - Go
+  - gRPC
+  - Kafka
+  - PostgreSQL
+  - Docker
+github: https://github.com/diskonnekted/Tetrahedron-3D-Viewer
+demo: '#'
+imageClass: bg-gradient-to-br from-blue-500 to-indigo-600

@@ -1,0 +1,4 @@
+role: "IoT Solutions Developer"
+company: "Community Projects"
+period: "Dec 2025 - Present"
+description: "Developing 'dasbor-bencana-alam', a real-time dashboard for village-level Disaster Early Warning Systems (EWS). The system integrates IoT sensor data for flood, landslide, and environmental monitoring to provide timely alerts to local communities. Built using TypeScript."

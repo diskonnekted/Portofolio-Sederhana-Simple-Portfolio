@@ -1,0 +1,49 @@
+---
+import { Icon } from 'astro-icon/components';
+import { getEntry } from 'astro:content';
+
+const contactEntry = await getEntry('contact', 'data');
+const contact = contactEntry?.data;
+
+if (!contact) {
+  throw new Error("Contact data not found");
+}
+---
+
+<section id="contact" class="py-20 bg-white dark:bg-slate-900">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl font-bold text-slate-900 dark:text-white sm:text-4xl">{contact.title}</h2>
+      <p class="mt-4 text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+        {contact.subtitle}
+      </p>
+    </div>
+
+    <div class="max-w-3xl mx-auto bg-slate-50 dark:bg-slate-800 rounded-2xl p-8 md:p-12 shadow-xl border border-slate-100 dark:border-slate-700 text-center">
+      <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Let's build something amazing together</h3>
+      <p class="text-slate-600 dark:text-slate-300 mb-8 max-w-lg mx-auto">
+        I'm currently available for freelance projects and open to full-time opportunities.
+      </p>
+      
+      <a href={`https://wa.me/${contact.phone}`} class="inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/20 mb-10">
+        <Icon name="simple-icons:whatsapp" class="w-6 h-6 mr-2" />
+        Say Hello
+      </a>
+      
+      <div class="flex justify-center space-x-6">
+        <a href={contact.github} class="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">
+          <span class="sr-only">GitHub</span>
+          <Icon name="simple-icons:github" class="w-8 h-8" />
+        </a>
+        <a href={contact.website} class="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">
+          <span class="sr-only">Website</span>
+          <Icon name="ph:globe-bold" class="w-8 h-8" />
+        </a>
+        <a href={contact.instagram} class="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">
+          <span class="sr-only">Instagram</span>
+          <Icon name="simple-icons:instagram" class="w-8 h-8" />
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

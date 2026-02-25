@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Trace Simulator - EDUCATION</title>
+    <style>
+        :root {
+            --primary: #00ff41;
+            --bg: #050505;
+            --panel: #0a0a0a;
+            --alert: #ff3333;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--primary);
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 600px;
+            border: 1px solid var(--primary);
+            background: var(--panel);
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.1);
+            position: relative;
+        }
+
+        /* Watermark Keamanan */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 30px;
+            color: rgba(255, 51, 51, 0.2);
+            border: 4px solid rgba(255, 51, 51, 0.2);
+            padding: 20px;
+            pointer-events: none;
+            z-index: 100;
+            text-align: center;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        header {
+            border-bottom: 1px solid var(--primary);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-badge {
+            background: var(--primary);
+            color: #000;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            background: #000;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 10px;
+            font-family: inherit;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+        }
+
+        button:disabled {
+            background: #333;
+            cursor: not-allowed;
+        }
+
+        /* Visualisasi Jaringan */
+        .network-viz {
+            height: 200px;
+            border: 1px solid #333;
+            background: #000;
+            position: relative;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .node {
+            width: 10px;
+            height: 10px;
+            background: #333;
+            position: absolute;
+            border-radius: 50%;
+            transition: all 0.5s;
+        }
+
+        .node.active {
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .node.target {
+            background: var(--alert);
+            box-shadow: 0 0 15px var(--alert);
+            width: 15px;
+            height: 15px;
+        }
+
+        .connection-line {
+            position: absolute;
+            height: 1px;
+            background: #333;
+            transform-origin: 0 0;
+            transition: all 0.5s;
+        }
+
+        .connection-line.active {
+            background: var(--primary);
+            box-shadow: 0 0 5px var(--primary);
+        }
+
+        /* Panel Data */
+        .data-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .data-box {
+            border: 1px solid #333;
+            padding: 5px;
+        }
+
+        .data-label {
+            color: #666;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .data-value {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* Console Log */
+        .console {
+            height: 150px;
+            background: #000;
+            border: 1px solid #333;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 11px;
+            color: #00cc33;
+        }
+
+        .console p {
+            margin: 2px 0;
+        }
+
+        .blink {
+            animation: blinker 1s linear infinite;
+        }
+
+        @keyframes blinker {
+            50% { opacity: 0; }
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            background-color: #333;
+            height: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: var(--primary);
+            transition: width 0.1s;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="watermark">SIMULATION ONLY<br>NO REAL TRACKING</div>
+        
+        <header>
+            <div>NET_TRACE_V2.0</div>
+            <div class="status-badge">SECURE CONNECTION</div>
+        </header>
+
+        <div class="input-area">
+            <input type="text" id="targetInput" placeholder="Masukkan IP / Domain / Username">
+            <button id="traceBtn" onclick="startTrace()">TRACE</button>
+        </div>
+
+        <div class="network-viz" id="networkViz">
+            <!-- Nodes will be generated by JS -->
+        </div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="data-panel">
+            <div class="data-box">
+                <span class="data-label">TARGET IP</span>
+                <span class="data-value" id="dispIP">---</span>
+            </div>
+            <div class="data-box">
+                <span class="data-label">ISP PROVIDER</span>
+                <span class="data-value" id="dispISP">---</span>
+            </div>
+            <div class="data-box">
+                <span class="data-label">LOCATION</span>
+                <span class="data-value" id="dispLoc">---</span>
+            </div>
+            <div class="data-box">
+                <span class="data-label">LATENCY</span>
+                <span class="data-value" id="dispPing">---</span>
+            </div>
+        </div>
+
+        <div class="console" id="consoleLog">
+            <p>> System initialized...</p>
+            <p>> Waiting for target input...</p>
+        </div>
+    </div>
+
+    <script>
+        const dummyISPs = ["Telkom Indonesia", "Indosat Ooredoo", "XL Axiata", "Comcast", "Verizon", "China Telecom", "Deutsche Telekom"];
+        const dummyLocations = ["Jakarta, ID", "Bandung, ID", "Surabaya, ID", "Singapore, SG", "Kuala Lumpur, MY", "Unknown Proxy", "Tor Exit Node"];
+        
+        function log(msg) {
+            const consoleDiv = document.getElementById('consoleLog');
+            const time = new Date().toLocaleTimeString();
+            const p = document.createElement('p');
+            p.innerHTML = `<span style="color:#666">[${time}]</span> ${msg}`;
+            consoleDiv.appendChild(p);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        function generateRandomIP() {
+            return `${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
+        }
+
+        function createNetworkViz() {
+            const viz = document.getElementById('networkViz');
+            viz.innerHTML = '';
+            const nodes = [];
+            const width = viz.clientWidth;
+            const height = viz.clientHeight;
+
+            // Create random nodes
+            for(let i=0; i<15; i++) {
+                const node = document.createElement('div');
+                node.className = 'node';
+                node.style.left = Math.random() * (width - 10) + 'px';
+                node.style.top = Math.random() * (height - 10) + 'px';
+                viz.appendChild(node);
+                nodes.push(node);
+            }
+            return nodes;
+        }
+
+        function animateNetwork(nodes) {
+            // Randomly light up nodes
+            setInterval(() => {
+                nodes.forEach(node => {
+                    if(Math.random() > 0.8) {
+                        node.classList.add('active');
+                        setTimeout(() => node.classList.remove('active'), 200);
+                    }
+                });
+            }, 100);
+        }
+
+        function startTrace() {
+            const input = document.getElementById('targetInput').value;
+            const btn = document.getElementById('traceBtn');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            
+            // Reset Data
+            document.getElementById('dispIP').innerText = "---";
+            document.getElementById('dispISP').innerText = "---";
+            document.getElementById('dispLoc').innerText = "---";
+            document.getElementById('dispPing').innerText = "---";
+            
+            if(!input) {
+                log("ERROR: Input empty.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "TRACING...";
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            
+            // Init Visuals
+            const nodes = createNetworkViz();
+            animateNetwork(nodes);
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 5;
+                if(progress > 100) progress = 100;
+                progressBar.style.width = progress + '%';
+
+                // Simulation Steps
+                if(progress > 10 && progress < 15) log(`Resolving host ${input}...`);
+                if(progress > 30 && progress < 35) log(`Connecting to nearest node...`);
+                if(progress > 50 && progress < 55) log(`Handshake successful.`);
+                if(progress > 70 && progress < 75) log(`Bypassing firewall (SIMULATED)...`);
+                if(progress > 90 && progress < 95) log(`Triangulating signal...`);
+
+                if(progress === 100) {
+                    clearInterval(interval);
+                    finishTrace(nodes);
+                    btn.disabled = false;
+                    btn.innerText = "TRACE";
+                }
+            }, 100);
+        }
+
+        function finishTrace(nodes) {
+            // Set Dummy Data
+            const ip = generateRandomIP();
+            const isp = dummyISPs[Math.floor(Math.random() * dummyISPs.length)];
+            const loc = dummyLocations[Math.floor(Math.random() * dummyLocations.length)];
+            const ping = Math.floor(Math.random() * 150) + 20 + " ms";
+
+            document.getElementById('dispIP').innerText = ip;
+            document.getElementById('dispISP').innerText = isp;
+            document.getElementById('dispLoc').innerText = loc;
+            document.getElementById('dispPing').innerText = ping;
+
+            // Highlight target node
+            if(nodes.length > 0) {
+                const target = nodes[nodes.length - 1];
+                target.classList.add('target');
+            }
+
+            log(`Trace complete. Target identified.`);
+            log(`WARNING: DATA IS SIMULATED.`);
+        }
+
+        // Initialize viz on load
+        window.onload = () => {
+            const nodes = createNetworkViz();
+            animateNetwork(nodes);
+        };
+    </script>
+</body>
+</html>

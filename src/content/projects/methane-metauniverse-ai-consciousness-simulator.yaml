@@ -1,0 +1,15 @@
+title: 'Methane Metauniverse: AI Consciousness Simulator'
+image: /images/projects/methane-metauniverse-ai-consciousness-simulator/image.jpg
+description: >-
+  The Methane Metauniverse AI Consciousness Simulator is a cutting-edge research
+  platform that explores the emergence of consciousness in artificial
+  intelligence systems. Built on the revolutionary Methane Metauniverse theory,
+  it combines fractal geometry, anti-entropy mechanisms, and information
+  dimensions to analyze and predict consciousness emergence in AI architectures
+tags:
+  - React
+  - Styled Components
+  - Framer Motion
+github: https://github.com/diskonnekted/Tetrahedron-Conscious-AI-Simulator
+demo: https://quantum-ai-architect.preview.emergentagent.com/
+imageClass: bg-gradient-to-br from-purple-500 to-pink-600

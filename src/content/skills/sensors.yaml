@@ -1,0 +1,4 @@
+name: "Sensors"
+icon: "ph:thermometer-simple-bold"
+category: "Device"
+color: "text-green-500"

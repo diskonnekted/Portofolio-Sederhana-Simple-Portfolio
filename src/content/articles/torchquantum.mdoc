@@ -1,0 +1,120 @@
+---
+title: 'TorchQuantum: Framework Quantum Computing Berbasis PyTorch'
+publishedDate: 2026-02-25
+description: >-
+  Pelajari TorchQuantum, library berbasis PyTorch untuk simulasi komputasi
+  kuantum, Quantum Machine Learning, dan Quantum Neural Networks dengan performa
+  tinggi.
+coverImage: /images/articles/torchquantum/coverImage.jpg
+---
+Komputasi kuantum (*Quantum Computing*) semakin mendekati realitas praktis, dan kebutuhan akan alat simulasi yang kuat menjadi sangat penting bagi peneliti dan pengembang. **TorchQuantum** hadir sebagai solusi yang menjembatani dunia *Deep Learning* klasik dengan algoritma kuantum.
+
+Dikembangkan oleh MIT Han Lab, **TorchQuantum** adalah framework berbasis **PyTorch** yang dirancang untuk simulasi kuantum klasik, *Quantum Machine Learning* (QML), dan *Quantum Neural Networks* (QNN).
+
+## Mengapa TorchQuantum?
+
+Berbeda dengan framework lain seperti Qiskit atau PennyLane, TorchQuantum dirancang khusus untuk integrasi yang mulus dengan ekosistem PyTorch, menawarkan keunggulan seperti:
+
+1. **Integrasi PyTorch Native**: Membangun model kuantum semudah membangun model *Deep Learning* biasa di PyTorch.
+1. **Dukungan GPU Cepat**: Memungkinkan simulasi sirkuit kuantum yang lebih cepat dan skalabel menggunakan GPU.
+1. **Grafik Komputasi Dinamis**: Memudahkan debugging dan eksperimen model.
+1. **Batch Processing**: Mendukung pemrosesan batch tensor, sangat penting untuk pelatihan model machine learning yang efisien.
+1. **Deployment Mudah**: Mendukung deployment ke perangkat kuantum nyata (seperti IBM Quantum) dengan mudah.
+
+## Fitur Utama
+
+- Konstruksi dan simulasi sirkuit kuantum yang mudah di PyTorch.
+- Dukungan gradien otomatis (*autograd*) untuk pelatihan model parameterisasi (VQA/QNN).
+- Mode inferensi dan pelatihan batch pada CPU/GPU.
+- Konstruksi model hibrida klasik-kuantum yang mudah.
+- Konversi mudah ke Qiskit untuk dijalankan di hardware nyata.
+
+![](/images/articles/content/torchquantum/pytorch-workflow.webp)
+
+## Instalasi
+
+Untuk memulai dengan TorchQuantum, Anda dapat menginstalnya langsung dari repositori GitHub:
+
+```bash
+git clone https://github.com/mit-han-lab/torchquantum.git
+cd torchquantum
+pip install --editable .
+```
+
+## Penggunaan Dasar
+
+Berikut adalah contoh sederhana bagaimana membuat sirkuit kuantum dan melakukan operasi dasar menggunakan TorchQuantum:
+
+```python
+import torchquantum as tq
+import torchquantum.functional as tqf
+
+# Inisialisasi perangkat kuantum dengan 2 qubit
+qdev = tq.QuantumDevice(n_wires=2, bsz=5, device="cpu", record_op=True)
+
+# Menerapkan gerbang Hadamard pada qubit 0
+qdev.h(wires=0)
+
+# Menerapkan gerbang CNOT (Controlled-NOT) pada qubit 0 (kontrol) dan 1 (target)
+qdev.cnot(wires=[0, 1])
+
+# Menggunakan fungsi fungsional (tqf)
+tqf.rx(qdev, wires=1, params=0.5)
+
+# Mencetak status saat ini
+print(qdev)
+
+# Mengukur hasil dalam basis Z
+print(tq.measure(qdev, n_shots=1024))
+```
+
+## Membangun Quantum Neural Network (QNN)
+
+Salah satu kekuatan utama TorchQuantum adalah kemampuannya untuk membangun QNN yang terintegrasi dengan layer klasik PyTorch. Berikut adalah contoh model hibrida sederhana:
+
+```python
+import torch.nn as nn
+import torch.nn.functional as F
+import torchquantum as tq
+import torchquantum.functional as tqf
+
+class QFCModel(nn.Module):
+  def __init__(self):
+    super().__init__()
+    self.n_wires = 4
+    self.measure = tq.MeasureAll(tq.PauliZ)
+    
+    # Layer encoder dan variasi kuantum
+    self.encoder_gates = [tqf.rx] * 4 + [tqf.ry] * 4
+    self.rx0 = tq.RX(has_params=True, trainable=True)
+    self.ry0 = tq.RY(has_params=True, trainable=True)
+    self.crx0 = tq.CRX(has_params=True, trainable=True)
+
+  def forward(self, x):
+    bsz = x.shape[0]
+    # Pre-processing data gambar klasik
+    x = F.avg_pool2d(x, 6).view(bsz, 16)
+
+    # Inisialisasi perangkat kuantum
+    qdev = tq.QuantumDevice(n_wires=self.n_wires, bsz=bsz, device=x.device)
+
+    # Encode data klasik ke domain kuantum
+    # ... (logika encoding)
+    
+    # Terapkan gerbang kuantum yang dapat dilatih
+    self.rx0(qdev, wires=0)
+    self.ry0(qdev, wires=1)
+    self.crx0(qdev, wires=[0, 1])
+
+    # Ukur hasil
+    x = self.measure(qdev)
+    
+    # Post-processing (jika ada)
+    return x
+```
+
+## Kesimpulan
+
+TorchQuantum membuka peluang besar bagi peneliti *Deep Learning* untuk bereksperimen dengan komputasi kuantum tanpa harus mempelajari bahasa pemrograman kuantum yang sama sekali baru. Dengan memanfaatkan kekuatan ekosistem PyTorch, TorchQuantum mempercepat inovasi di bidang *Quantum Machine Learning*.
+
+Untuk informasi lebih lanjut, kunjungi [Repositori GitHub TorchQuantum](https://github.com/mit-han-lab/torchquantum).

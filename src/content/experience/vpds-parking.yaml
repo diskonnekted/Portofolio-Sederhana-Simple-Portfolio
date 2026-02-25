@@ -1,0 +1,4 @@
+role: "IoT Developer"
+company: "Independent Project"
+period: "Jan 2026"
+description: "Created 'VPDS' (Vehicle Parking Detection System), an automated parking monitoring solution using ESP32-CAM and AI-based motion detection. Includes a real-time dashboard built with Tailwind CSS and PHP for analytics."

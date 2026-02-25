@@ -1,0 +1,69 @@
+---
+title: 'Menembus Batas Dimensi: Eksplorasi Simulasi Osilasi Tetracore'
+publishedDate: 2026-02-25
+description: >-
+  Bagaimana jika kita bisa memvisualisasikan getaran partikel dalam 4 dimensi?
+  Simak perjalanan saya membangun simulasi real-time berbasis teori Methane
+  Metauniverse (MMU) menggunakan Python dan Modern Web Tech.
+coverImage: /images/articles/tetracore-oscillation/coverImage.png
+---
+Pernahkah Anda membayangkan bagaimana bentuk getaran sebuah partikel jika dilihat dari dimensi keempat? Di dunia fisika teoretis, konsep ini seringkali hanya berakhir sebagai persamaan matematika yang rumit di atas kertas. Namun, sebagai seorang engineer yang mencintai tantangan visualisasi data, saya mencoba membawa konsep abstrak ini menjadi sesuatu yang bisa dilihat, dirasakan, dan diinteraksikan secara *real-time*.
+
+Inilah **Particle Oscillation Simulation**, sebuah proyek eksperimental yang saya bangun berdasarkan teori *Methane Metauniverse (MMU)* yang dikembangkan oleh Jürgen Wollbold.
+
+## Apa itu Teori Methane Metauniverse (MMU)?
+
+Sebelum masuk ke teknis, mari kita bahas sedikit tentang landasan ilmiahnya. Berdasarkan paper penelitian berjudul *"The Methane Metauniverse (MMU) A Geometric Explanation of Antiparticles, Entanglement, and Time"* (Agustus 2025), alam semesta kita mungkin memiliki struktur geometri yang jauh lebih kompleks dari yang kita lihat.
+
+Teori ini mengajukan model osilasi 4 dimensi untuk menjelaskan fenomena fisika kuantum. Dalam simulasi ini, setiap partikel (tetrahedron) bergetar dalam empat variabel dimensi:
+
+1. **w₁ (Projection - Biru)**: Proyeksi ruang yang dapat diamati (Observable space).
+1. **w₂ (Energy - Merah)**: Osilasi input energi.
+1. **w₃ (Spin - Hijau)**: Momentum sudut spin.
+1. **w₄ (Mass - Ungu)**: Dinamika proyeksi massa.
+
+Tantangan terbesarnya adalah: *bagaimana menerjemahkan persamaan matematika 4D ini ke dalam layar 2D yang bisa dipahami manusia?*
+
+## Arsitektur Simulasi: Python bertemu Web Modern
+
+Untuk membangun sistem ini, saya membutuhkan performa komputasi tinggi di backend dan visualisasi yang responsif di frontend.
+
+### The Engine: Dual Backend Support
+
+Saya merancang sistem ini dengan fleksibilitas tinggi, mendukung dua backend:
+
+- **Python (FastAPI)**: Pilihan utama untuk kalkulasi fisika berat. Python menangani persamaan diferensial untuk osilasi w₁-w₄ dengan sangat efisien.
+- **PHP**: Sebagai alternatif backend yang lebih ringan untuk lingkungan hosting standar.
+
+Keduanya berkomunikasi dengan frontend melalui **WebSocket** (untuk update real-time) dan HTTP polling sebagai fallback.
+
+```python
+# Contoh sederhana logika osilasi (disederhanakan)
+w1 = amplitude_w1 * sin(2π * frequency * t + phase_w1)
+# Inter-dimensional coupling (MMU theory)
+w1_coupled = w1 + coupling * (w2 * 0.3 + w4 * 0.2)
+```
+
+### The View: Visualisasi Interaktif
+
+Di sisi frontend, saya menggunakan kombinasi teknologi modern:
+
+- **Tailwind CSS**: Untuk antarmuka dashboard yang bersih, modern, dan responsif.
+- **Chart.js**: Untuk merender grafik gelombang osilasi secara real-time. Memantau FPS dan stabilitas sistem menjadi sangat mudah.
+- **Interactive 4D Bars**: Bar visualisasi berwarna-warni yang naik-turun sesuai dengan nilai w₁-w₄, memberikan representasi visual instan dari status partikel.
+
+## Fitur Unggulan
+
+Simulasi ini bukan sekadar gambar bergerak. Ini adalah laboratorium virtual mini:
+
+- **Real-time Oscillation**: Anda bisa melihat keempat dimensi bergetar secara harmonis (atau kacau) tergantung pada parameter yang Anda atur.
+- **Inter-dimensional Coupling**: Mengubah satu dimensi akan memengaruhi dimensi lainnya, sesuai dengan hukum koupling teori MMU.
+- **Stability Analysis**: Sistem secara otomatis menghitung "Faktor Stabilitas" partikel. Apakah partikel ini stabil atau akan meluruh? Algoritma kami akan memberitahu Anda.
+
+## Mengapa Proyek Ini Penting?
+
+Bagi saya, *Particle Oscillation Simulation* lebih dari sekadar kode. Ini adalah jembatan. Jembatan antara fisika teoretis yang "dingin" dan dunia digital yang interaktif. Proyek ini membuktikan bahwa dengan teknologi web modern, kita bisa membuat konsep sains yang paling rumit sekalipun menjadi aksesibel dan menarik bagi siapa saja.
+
+Anda bisa melihat kode sumber lengkap dan mencoba menjalankannya sendiri melalui repositori GitHub saya: [Tetracore-Oscillation-Simulation](https://github.com/diskonnekted/Tetracore-Oscillation-Simulation).
+
+Tertarik berdiskusi tentang fisika komputasi atau pengembangan IoT? Jangan ragu untuk menghubungi saya!

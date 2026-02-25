@@ -1,0 +1,4 @@
+name: "WebSocket"
+icon: "simple-icons:socketdotio"
+category: "Connectivity"
+color: "text-white dark:text-gray-200"

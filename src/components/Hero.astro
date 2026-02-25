@@ -1,0 +1,66 @@
+---
+import { Icon } from 'astro-icon/components';
+import { getEntry } from 'astro:content';
+
+const heroEntry = await getEntry('hero', 'data');
+const hero = heroEntry?.data;
+
+if (!hero) {
+  throw new Error("Hero data not found");
+}
+---
+
+<section id="hero" class="min-h-screen flex items-center justify-center pt-16 relative overflow-hidden">
+  <!-- Background gradient effects -->
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-emerald-500/10 dark:bg-emerald-500/5 blur-[120px] rounded-full -z-10"></div>
+  
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center gap-12">
+    <div class="flex-1 text-center md:text-left z-10">
+      {hero.availableForHire && (
+        <span class="inline-block px-3 py-1 mb-4 text-xs font-semibold tracking-wider text-emerald-600 dark:text-emerald-400 uppercase bg-emerald-100 dark:bg-emerald-900/30 rounded-full">
+          Available for Hire
+        </span>
+      )}
+      <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6">
+        {hero.headline}
+      </h1>
+      <h2 class="text-xl md:text-2xl font-medium text-slate-600 dark:text-slate-300 mb-8">
+        {hero.subheadline}
+      </h2>
+      <p class="text-slate-600 dark:text-slate-400 mb-10 max-w-lg mx-auto md:mx-0 leading-relaxed">
+        {hero.description}
+      </p>
+      
+      <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+        <a href={hero.primaryCtaLink} class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/20">
+          {hero.primaryCtaText}
+          <Icon name="ph:arrow-right-bold" class="ml-2 w-5 h-5" />
+        </a>
+        <a href={hero.secondaryCtaLink} class="inline-flex items-center justify-center px-6 py-3 border border-slate-300 dark:border-slate-700 text-base font-medium rounded-lg text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+          {hero.secondaryCtaText}
+        </a>
+      </div>
+    </div>
+    
+    <div class="flex-1 relative z-10">
+      <div class="relative w-64 h-64 md:w-80 md:h-80 mx-auto">
+        <div class="absolute inset-0 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-full blur-2xl opacity-20 animate-pulse"></div>
+        <div class="relative w-full h-full rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl">
+          <!-- Placeholder for profile image -->
+          <img src={hero.avatar || "https://ui-avatars.com/api/?name=Arif+Susilo&background=10b981&color=fff&size=512"} alt="Arif Susilo" class="w-full h-full object-cover" />
+        </div>
+        
+        <!-- Floating Tech Icons -->
+        <div class="absolute -top-4 -right-4 bg-white dark:bg-slate-800 p-3 rounded-full shadow-lg animate-bounce" style="animation-delay: 0s;">
+          <Icon name="ph:code-bold" class="w-6 h-6 text-emerald-500" />
+        </div>
+        <div class="absolute top-1/2 -left-8 bg-white dark:bg-slate-800 p-3 rounded-full shadow-lg animate-bounce" style="animation-delay: 1s;">
+          <Icon name="ph:database-bold" class="w-6 h-6 text-blue-500" />
+        </div>
+        <div class="absolute -bottom-4 right-8 bg-white dark:bg-slate-800 p-3 rounded-full shadow-lg animate-bounce" style="animation-delay: 2s;">
+           <Icon name="ph:terminal-window-bold" class="w-6 h-6 text-purple-500" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

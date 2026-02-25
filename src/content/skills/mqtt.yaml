@@ -1,0 +1,4 @@
+name: "MQTT"
+icon: "simple-icons:mqtt"
+category: "Connectivity"
+color: "text-purple-600"

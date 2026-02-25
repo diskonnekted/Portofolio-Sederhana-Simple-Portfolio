@@ -1,0 +1,4 @@
+name: "ESP32/8266"
+icon: "simple-icons:espressif"
+category: "Device"
+color: "text-red-500"

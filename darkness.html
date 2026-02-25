@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUANTUM TERMINAL - SPACE OPS GAME [FIXED]</title>
+    <style>
+        :root {
+            --bg-color: #050505;
+            --primary-color: #00ff41;
+            --secondary-color: #008F11;
+            --alert-color: #ff3333;
+            --quantum-color: #00ffff;
+            --warning-color: #ffff00;
+            --purple-color: #bf00ff;
+            --font-main: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) var(--bg-color);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            font-family: var(--font-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* CRT Effect */
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 999;
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.97; }
+            50% { opacity: 1; }
+            100% { opacity: 0.98; }
+        }
+
+        /* Header */
+        .header {
+            border-bottom: 2px solid var(--primary-color);
+            padding: 10px;
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            align-items: center;
+            background: #001100;
+            z-index: 10;
+        }
+
+        .sim-badge {
+            background: var(--alert-color);
+            color: #000;
+            padding: 5px 10px;
+            font-weight: bold;
+            animation: blink 1s infinite;
+            text-align: center;
+        }
+
+        .player-stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            font-size: 14px;
+        }
+
+        .stat-box {
+            border: 1px solid var(--quantum-color);
+            padding: 5px 15px;
+            color: var(--quantum-color);
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .terminal-window {
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid var(--secondary-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .sidebar {
+            padding: 10px;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .panel {
+            border: 1px solid var(--secondary-color);
+            padding: 10px;
+            overflow: hidden;
+            position: relative;
+            min-height: 100px;
+        }
+
+        .panel-title {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: var(--secondary-color);
+            color: #000;
+            padding: 2px 5px;
+            font-size: 10px;
+        }
+
+        .panel-content {
+            margin-top: 15px;
+            font-size: 11px;
+            color: var(--quantum-color);
+        }
+
+        /* Input Area */
+        .input-area {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            border-top: 1px solid var(--secondary-color);
+            padding-top: 10px;
+        }
+
+        .prompt {
+            margin-right: 10px;
+            font-weight: bold;
+            color: var(--quantum-color);
+        }
+
+        #commandInput {
+            background: transparent;
+            border: none;
+            color: var(--primary-color);
+            font-family: var(--font-main);
+            font-size: 16px;
+            flex: 1;
+            outline: none;
+            caret-color: var(--primary-color);
+        }
+
+        /* Text Styles */
+        .log-line {
+            margin: 3px 0;
+            font-size: 13px;
+            text-shadow: 0 0 3px var(--primary-color);
+            line-height: 1.5;
+        }
+
+        .log-error { color: var(--alert-color); text-shadow: 0 0 5px var(--alert-color); }
+        .log-quantum { color: var(--quantum-color); text-shadow: 0 0 5px var(--quantum-color); }
+        .log-system { color: var(--warning-color); }
+        .log-mission { color: var(--purple-color); text-shadow: 0 0 5px var(--purple-color); }
+        .log-success { color: #00ff00; font-weight: bold; }
+        .log-info { color: #88ccff; }
+        .log-spec { color: #fff; }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 18px;
+            background: var(--primary-color);
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+        }
+
+        /* Radar Animation */
+        .radar {
+            width: 100px;
+            height: 100px;
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            position: relative;
+            margin: 10px auto;
+            background: radial-gradient(circle, #001100 0%, #000000 100%);
+        }
+
+        .radar-sweep {
+            width: 50%;
+            height: 50%;
+            background: conic-gradient(from 0deg, transparent 0deg, var(--primary-color) 60deg, transparent 60deg);
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: 100% 100%;
+            animation: radar-spin 2s linear infinite;
+        }
+
+        @keyframes radar-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .radar-dot {
+            width: 4px;
+            height: 4px;
+            background: var(--alert-color);
+            border-radius: 50%;
+            position: absolute;
+            animation: blink 0.5s infinite;
+        }
+
+        /* Achievement Popup */
+        .achievement {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: rgba(0, 20, 0, 0.95);
+            border: 2px solid var(--quantum-color);
+            padding: 15px;
+            min-width: 250px;
+            z-index: 1000;
+            animation: slideIn 0.5s ease-out;
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(300px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .achievement-title {
+            color: var(--quantum-color);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        /* Level Up Effect */
+        .levelup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+        }
+
+        .levelup-text {
+            font-size: 48px;
+            color: var(--quantum-color);
+            text-shadow: 0 0 20px var(--quantum-color);
+            animation: pulse 0.5s infinite;
+        }
+
+        .levelup-sub {
+            font-size: 24px;
+            color: var(--primary-color);
+            margin-top: 20px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Mission Card */
+        .mission-card {
+            border: 1px solid var(--purple-color);
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(191, 0, 255, 0.1);
+        }
+
+        .mission-title {
+            color: var(--purple-color);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .mission-status {
+            font-size: 10px;
+            padding: 2px 5px;
+            display: inline-block;
+        }
+
+        .status-pending { background: #666; color: #000; }
+        .status-active { background: var(--warning-color); color: #000; }
+        .status-complete { background: var(--primary-color); color: #000; }
+
+        /* Progress Bar */
+        .progress-container {
+            margin: 5px 0;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #111;
+            border: 1px solid var(--primary-color);
+            width: 100%;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s;
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: none;
+            }
+            .player-stats {
+                font-size: 10px;
+                gap: 10px;
+            }
+            .header {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                text-align: center;
+            }
+            .player-stats {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="crt-overlay"></div>
+
+    <!-- Header -->
+    <div class="header">
+        <div>🛰️ QUANTUM OPS v2.1 [FIXED]</div>
+        <div class="player-stats">
+            <div class="stat-box">LEVEL: <span id="playerLevel">1</span></div>
+            <div class="stat-box">CREDITS: <span id="playerCredits">0</span></div>
+            <div class="stat-box">XP: <span id="playerXP">0</span>/<span id="xpNeeded">100</span></div>
+            <div class="stat-box">RANK: <span id="playerRank">ROOKIE</span></div>
+        </div>
+        <div class="sim-badge">⚠ FICTION GAME ⚠</div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Terminal -->
+        <div class="terminal-window" id="terminalLog">
+            <div class="log-line log-quantum">╔════════════════════════════════════════════════════════════╗</div>
+            <div class="log-line log-quantum">║     QUANTUM TERMINAL - SPACE OPERATIONS SIMULATOR        ║</div>
+            <div class="log-line log-quantum">║              ALL MISSIONS ARE FICTIONAL                  ║</div>
+            <div class="log-line log-quantum">╚════════════════════════════════════════════════════════════╝</div>
+            <div class="log-line"> </div>
+            <div class="log-line log-system">✅ System loaded successfully!</div>
+            <div class="log-line log-system">Welcome, Operator. This is a FICTION GAME.</div>
+            <div class="log-line log-system">No real tracking, hacking, or surveillance occurs.</div>
+            <div class="log-line"> </div>
+            <div class="log-line log-mission">🎮 NEW MISSION AVAILABLE! Type 'MISSIONS' to view.</div>
+            <div class="log-line log-info">💡 TIP: Commands are case-insensitive</div>
+            <div class="log-line"> </div>
+            <div class="log-line">────────────────────────────────────────────────────────────</div>
+            
+            <div class="input-area">
+                <span class="prompt">operator@quantum:~#</span>
+                <input type="text" id="commandInput" autocomplete="off" autofocus>
+                <span class="cursor"></span>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Active Mission -->
+            <div class="panel" style="height: 180px;">
+                <div class="panel-title">ACTIVE_MISSION</div>
+                <div class="panel-content" id="activeMission">
+                    <div style="color: #666;">No active mission</div>
+                    <div style="margin-top: 10px;">Type 'MISSIONS' to browse</div>
+                </div>
+            </div>
+
+            <!-- Radar -->
+            <div class="panel" style="height: 150px;">
+                <div class="panel-title">NETWORK_RADAR</div>
+                <div class="panel-content">
+                    <div class="radar">
+                        <div class="radar-sweep"></div>
+                        <div class="radar-dot" style="top: 30%; left: 60%;"></div>
+                        <div class="radar-dot" style="top: 70%; left: 40%; animation-delay: 0.3s;"></div>
+                    </div>
+                    <div style="text-align: center; font-size: 10px; margin-top: 5px;">
+                        SCAN RANGE: 5000 KM
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="panel" style="height: 150px;">
+                <div class="panel-title">SYSTEM_STATUS</div>
+                <div class="panel-content" id="sysStatus">
+                    CPU: <span id="cpuVal">12</span>%<br>
+                    QUBITS: <span id="qubitVal">50</span>/512<br>
+                    NET: <span id="netVal">STABLE</span><br>
+                    TEMP: <span id="tempVal">45</span>°C
+                </div>
+            </div>
+
+            <!-- Achievements -->
+            <div class="panel" style="flex: 1;">
+                <div class="panel-title">ACHIEVEMENTS</div>
+                <div class="panel-content" id="achievements">
+                    <div style="color: #666;">0/10 Unlocked</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievement Popup -->
+    <div class="achievement" id="achievementPopup">
+        <div class="achievement-title">🏆 ACHIEVEMENT UNLOCKED!</div>
+        <div id="achievementText">First Mission Complete</div>
+    </div>
+
+    <!-- Level Up Overlay -->
+    <div class="levelup-overlay" id="levelUpOverlay">
+        <div class="levelup-text">LEVEL UP!</div>
+        <div class="levelup-sub" id="levelUpSub">You are now Level 2</div>
+    </div>
+
+    <script>
+        // ==================== GAME STATE ====================
+        const gameState = {
+            level: 1,
+            xp: 0,
+            xpNeeded: 100,
+            credits: 0,
+            rank: 'ROOKIE',
+            activeMission: null,
+            completedMissions: [],
+            achievements: [],
+            inventory: []
+        };
+
+        const ranks = ['ROOKIE', 'OPERATOR', 'AGENT', 'SPECIALIST', 'ELITE', 'LEGEND'];
+        
+        // ==================== MISSIONS DATABASE ====================
+        const missions = [
+            {
+                id: 1,
+                title: "Track Space Station Alpha",
+                description: "Locate and track the fictional ISS-Alpha space station orbit",
+                difficulty: "EASY",
+                xpReward: 50,
+                creditReward: 100,
+                duration: 5000,
+                steps: ["Connecting to satellite network...", "Triangulating orbital path...", "Locking onto transponder...", "Station located!"]
+            },
+            {
+                id: 2,
+                title: "Decrypt Alien Signal",
+                description: "Analyze and decode mysterious signal from deep space",
+                difficulty: "MEDIUM",
+                xpReward: 100,
+                creditReward: 250,
+                duration: 8000,
+                steps: ["Capturing signal...", "Running frequency analysis...", "Applying quantum decryption...", "Pattern recognized!"]
+            },
+            {
+                id: 3,
+                title: "Hack Corporate Satellite",
+                description: "Simulate infiltration of mega-corp communication satellite (FICTION)",
+                difficulty: "HARD",
+                xpReward: 200,
+                creditReward: 500,
+                duration: 12000,
+                steps: ["Bypassing firewall...", "Injecting quantum payload...", "Escalating privileges...", "Access granted!"]
+            },
+            {
+                id: 4,
+                title: "Track Underground Bunker",
+                description: "Locate secret underground facility using thermal imaging",
+                difficulty: "HARD",
+                xpReward: 250,
+                creditReward: 600,
+                duration: 15000,
+                steps: ["Activating thermal satellites...", "Scanning ground anomalies...", "Identifying heat signatures...", "Bunker coordinates found!"]
+            },
+            {
+                id: 5,
+                title: "Intercept Dark Web Server",
+                description: "Trace hidden server through multiple proxy layers",
+                difficulty: "EXTREME",
+                xpReward: 500,
+                creditReward: 1000,
+                duration: 20000,
+                steps: ["Entering TOR network...", "Bypassing 7 proxy layers...", "Quantum tracing active...", "Server location revealed!"]
+            },
+            {
+                id: 6,
+                title: "Monitor Deep Sea Base",
+                description: "Track underwater research facility communications",
+                difficulty: "MEDIUM",
+                xpReward: 150,
+                creditReward: 350,
+                duration: 10000,
+                steps: ["Connecting to submarine cables...", "Decrypting acoustic signals...", "Triangulating depth...", "Base located at 4000m!"]
+            },
+            {
+                id: 7,
+                title: "Quantum Computer Breach",
+                description: "Simulate access to quantum computing cluster",
+                difficulty: "EXTREME",
+                xpReward: 1000,
+                creditReward: 2500,
+                duration: 30000,
+                steps: ["Initializing quantum entanglement...", "Bypassing quantum encryption...", "Accessing qubit array...", "Full system access!"]
+            }
+        ];
+
+        // ==================== ACHIEVEMENTS ====================
+        const achievementsList = [
+            { id: 1, name: "First Steps", desc: "Complete your first mission", unlocked: false },
+            { id: 2, name: "Quick Learner", desc: "Reach Level 3", unlocked: false },
+            { id: 3, name: "Credit Collector", desc: "Earn 500 credits", unlocked: false },
+            { id: 4, name: "Mission Master", desc: "Complete 5 missions", unlocked: false },
+            { id: 5, name: "Elite Operator", desc: "Reach Elite rank", unlocked: false },
+            { id: 6, name: "Speed Runner", desc: "Complete mission in record time", unlocked: false },
+            { id: 7, name: "Explorer", desc: "Try all mission types", unlocked: false },
+            { id: 8, name: "Hacker", desc: "Complete hard difficulty mission", unlocked: false },
+            { id: 9, name: "Legend", desc: "Reach Level 10", unlocked: false },
+            { id: 10, name: "Completionist", desc: "Unlock all achievements", unlocked: false }
+        ];
+
+        // ==================== DOM ELEMENTS ====================
+        const input = document.getElementById('commandInput');
+        const logContainer = document.getElementById('terminalLog');
+
+        // ==================== LOGGING FUNCTION ====================
+        function addLog(text, type = '') {
+            try {
+                const div = document.createElement('div');
+                div.className = `log-line ${type}`;
+                div.innerHTML = text;
+                const inputArea = document.querySelector('.input-area');
+                if (inputArea) {
+                    logContainer.insertBefore(div, inputArea);
+                } else {
+                    logContainer.appendChild(div);
+                }
+                logContainer.scrollTop = logContainer.scrollHeight;
+            } catch (e) {
+                console.error('addLog error:', e);
+            }
+        }
+
+        // ==================== PLAYER STATS ====================
+        function updatePlayerStats() {
+            try {
+                document.getElementById('playerLevel').innerText = gameState.level;
+                document.getElementById('playerCredits').innerText = gameState.credits;
+                document.getElementById('playerXP').innerText = gameState.xp;
+                document.getElementById('xpNeeded').innerText = gameState.xpNeeded;
+                document.getElementById('playerRank').innerText = gameState.rank;
+                
+                const unlocked = achievementsList.filter(a => a.unlocked).length;
+                document.getElementById('achievements').innerHTML = `<div style="color: var(--quantum-color);">${unlocked}/10 Unlocked</div>`;
+            } catch (e) {
+                console.error('updatePlayerStats error:', e);
+            }
+        }
+
+        function addXP(amount) {
+            gameState.xp += amount;
+            if (gameState.xp >= gameState.xpNeeded) {
+                levelUp();
+            }
+            updatePlayerStats();
+        }
+
+        function addCredits(amount) {
+            gameState.credits += amount;
+            updatePlayerStats();
+        }
+
+        function levelUp() {
+            gameState.level++;
+            gameState.xp = 0;
+            gameState.xpNeeded = Math.floor(gameState.xpNeeded * 1.5);
+            
+            const rankIndex = Math.min(Math.floor((gameState.level - 1) / 2), ranks.length - 1);
+            gameState.rank = ranks[rankIndex];
+
+            const overlay = document.getElementById('levelUpOverlay');
+            document.getElementById('levelUpSub').innerText = `You are now Level ${gameState.level} - ${gameState.rank}`;
+            overlay.style.display = 'flex';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 3000);
+
+            addLog(`🎉 LEVEL UP! You are now Level ${gameState.level} (${gameState.rank})`, 'log-success');
+            checkAchievements();
+        }
+
+        function showAchievement(achievement) {
+            const popup = document.getElementById('achievementPopup');
+            document.getElementById('achievementText').innerText = `${achievement.name}: ${achievement.desc}`;
+            popup.style.display = 'block';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 4000);
+            addLog(`🏆 ACHIEVEMENT: ${achievement.name}`, 'log-mission');
+        }
+
+        function checkAchievements() {
+            if (gameState.completedMissions.length >= 1 && !achievementsList[0].unlocked) {
+                achievementsList[0].unlocked = true;
+                showAchievement(achievementsList[0]);
+            }
+            if (gameState.level >= 3 && !achievementsList[1].unlocked) {
+                achievementsList[1].unlocked = true;
+                showAchievement(achievementsList[1]);
+            }
+            if (gameState.credits >= 500 && !achievementsList[2].unlocked) {
+                achievementsList[2].unlocked = true;
+                showAchievement(achievementsList[2]);
+            }
+            if (gameState.completedMissions.length >= 5 && !achievementsList[3].unlocked) {
+                achievementsList[3].unlocked = true;
+                showAchievement(achievementsList[3]);
+            }
+            if (gameState.rank === 'ELITE' && !achievementsList[4].unlocked) {
+                achievementsList[4].unlocked = true;
+                showAchievement(achievementsList[4]);
+            }
+            if (gameState.level >= 10 && !achievementsList[8].unlocked) {
+                achievementsList[8].unlocked = true;
+                showAchievement(achievementsList[8]);
+            }
+        }
+
+        // ==================== COMMAND PROCESSOR ====================
+        function processCommand(cmd) {
+            try {
+                const parts = cmd.split(' ');
+                const command = parts[0].toLowerCase();
+                const args = parts.slice(1).join(' ');
+
+                addLog(`Processing command: ${command}...`, 'log-info');
+
+                switch(command) {
+                    case 'help':
+                        showHelp();
+                        break;
+                    case 'clear':
+                        clearTerminal();
+                        break;
+                    case 'missions':
+                        showMissions();
+                        break;
+                    case 'accept':
+                        acceptMission(args);
+                        break;
+                    case 'status':
+                        showStatus();
+                        break;
+                    case 'inventory':
+                        showInventory();
+                        break;
+                    case 'rank':
+                        showRank();
+                        break;
+                    case 'achievements':
+                        showAchievementsList();
+                        break;
+                    case 'scan':
+                        runScan();
+                        break;
+                    case 'hack':
+                        runHack(args);
+                        break;
+                    case 'decrypt':
+                        runDecrypt(args);
+                        break;
+                    case 'track':
+                        runTrack(args);
+                        break;
+                    case 'sysinfo':
+                        showSysInfo();
+                        break;
+                    case 'quit':
+                    case 'exit':
+                        addLog('Use browser refresh to restart game.', 'log-system');
+                        break;
+                    case '':
+                        break;
+                    default:
+                        addLog(`❌ Unknown command: ${command}. Type 'HELP' for commands.`, 'log-error');
+                }
+            } catch (e) {
+                addLog(`❌ ERROR: ${e.message}`, 'log-error');
+                console.error('processCommand error:', e);
+            }
+        }
+
+        // ==================== INPUT EVENT LISTENER ====================
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const cmd = this.value.trim();
+                addLog(`<span style="color: #666;">operator@quantum:~#</span> ${cmd}`);
+                this.value = '';
+                processCommand(cmd);
+            }
+        });
+
+        // Keep focus on input
+        document.addEventListener('click', () => {
+            input.focus();
+        });
+
+        // ==================== COMMAND FUNCTIONS ====================
+        function showHelp() {
+            addLog('═══════════════════════════════════════════════════════════', 'log-quantum');
+            addLog('  AVAILABLE COMMANDS:', 'log-system');
+            addLog('═══════════════════════════════════════════════════════════', 'log-quantum');
+            addLog('  MISSIONS          - View available missions');
+            addLog('  ACCEPT [id]       - Accept a mission by ID');
+            addLog('  STATUS            - Show current mission status');
+            addLog('  RANK              - Show your rank info');
+            addLog('  ACHIEVEMENTS      - View achievement list');
+            addLog('  INVENTORY         - View collected items');
+            addLog('  SCAN              - Run network scan (fun command)');
+            addLog('  HACK [target]     - Simulate hack operation');
+            addLog('  DECRYPT [data]    - Simulate decryption');
+            addLog('  TRACK [target]    - Simulate tracking');
+            addLog('  SYSINFO           - Show system specifications');
+            addLog('  CLEAR             - Clear terminal');
+            addLog('  HELP              - Show this help');
+            addLog('═══════════════════════════════════════════════════════════', 'log-quantum');
+            addLog('  ⚠ ALL COMMANDS ARE FICTIONAL SIMULATIONS ⚠', 'log-error');
+        }
+
+        function clearTerminal() {
+            const lines = document.querySelectorAll('.log-line');
+            lines.forEach(line => line.remove());
+            addLog('Terminal cleared.', 'log-system');
+        }
+
+        function showMissions() {
+            addLog('═══════════════════════════════════════════════════════════', 'log-mission');
+            addLog('  📋 AVAILABLE MISSIONS (All Fictional)', 'log-mission');
+            addLog('═══════════════════════════════════════════════════════════', 'log-mission');
+            
+            missions.forEach(mission => {
+                const completed = gameState.completedMissions.includes(mission.id) ? '✅' : '⬜';
+                const active = gameState.activeMission?.id === mission.id ? '🔄' : '';
+                const status = active || completed || '⬜';
+                addLog(`  [${mission.id}] ${status} ${mission.title}`);
+                addLog(`      Difficulty: ${mission.difficulty} | XP: ${mission.xpReward} | Credits: ${mission.creditReward}`);
+                addLog(`      ${mission.description}`);
+                addLog('');
+            });
+            
+            addLog('Type ACCEPT [id] to start a mission', 'log-system');
+            addLog('═══════════════════════════════════════════════════════════', 'log-mission');
+        }
+
+        function acceptMission(id) {
+            const missionId = parseInt(id);
+            const mission = missions.find(m => m.id === missionId);
+
+            if (!mission) {
+                addLog(`❌ Mission ID ${id} not found.`, 'log-error');
+                return;
+            }
+
+            if (gameState.completedMissions.includes(missionId)) {
+                addLog(`❌ Mission already completed!`, 'log-error');
+                return;
+            }
+
+            if (gameState.activeMission) {
+                addLog(`❌ Already have active mission. Complete or abort first.`, 'log-error');
+                return;
+            }
+
+            gameState.activeMission = mission;
+            addLog(`🎯 MISSION ACCEPTED: ${mission.title}`, 'log-mission');
+            addLog(`Objective: ${mission.description}`, 'log-info');
+            
+            document.getElementById('activeMission').innerHTML = `
+                <div class="mission-card">
+                    <div class="mission-title">${mission.title}</div>
+                    <div>Difficulty: ${mission.difficulty}</div>
+                    <div>XP: ${mission.xpReward} | Credits: ${mission.creditReward}</div>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="missionProgress"></div>
+                        </div>
+                    </div>
+                    <div class="mission-status status-active">IN PROGRESS</div>
+                </div>
+            `;
+
+            runMission(mission);
+        }
+
+        function runMission(mission) {
+            let progress = 0;
+            const progressBar = document.getElementById('missionProgress');
+            
+            const interval = setInterval(() => {
+                progress += Math.random() * 3;
+                if (progress > 100) progress = 100;
+                
+                if (progressBar) progressBar.style.width = `${progress}%`;
+
+                if (Math.random() > 0.6 && progress < 100) {
+                    const step = mission.steps[Math.floor(Math.random() * mission.steps.length)];
+                    addLog(step, 'log-quantum');
+                }
+
+                if (progress === 100) {
+                    clearInterval(interval);
+                    completeMission(mission);
+                }
+            }, mission.duration / 100);
+        }
+
+        function completeMission(mission) {
+            gameState.completedMissions.push(mission.id);
+            gameState.activeMission = null;
+            
+            addXP(mission.xpReward);
+            addCredits(mission.creditReward);
+            
+            addLog(`═══════════════════════════════════════════════════════════`, 'log-success');
+            addLog(`  ✅ MISSION COMPLETE: ${mission.title}`, 'log-success');
+            addLog(`  +${mission.xpReward} XP | +${mission.creditReward} Credits`, 'log-success');
+            addLog(`═══════════════════════════════════════════════════════════`, 'log-success');
+
+            document.getElementById('activeMission').innerHTML = `
+                <div style="color: var(--primary-color);">Mission Complete!</div>
+                <div style="margin-top: 10px;">Type 'MISSIONS' for next job</div>
+            `;
+
+            checkAchievements();
+        }
+
+        function showStatus() {
+            addLog('═══════════════════════════════════════════════════════════', 'log-system');
+            addLog('  PLAYER STATUS', 'log-system');
+            addLog('═══════════════════════════════════════════════════════════', 'log-system');
+            addLog(`  Level: ${gameState.level}`);
+            addLog(`  Rank: ${gameState.rank}`);
+            addLog(`  XP: ${gameState.xp}/${gameState.xpNeeded}`);
+            addLog(`  Credits: ${gameState.credits}`);
+            addLog(`  Missions Completed: ${gameState.completedMissions.length}/${missions.length}`);
+            addLog(`  Active Mission: ${gameState.activeMission ? gameState.activeMission.title : 'None'}`);
+            addLog('═══════════════════════════════════════════════════════════', 'log-system');
+        }
+
+        function showRank() {
+            addLog('═══════════════════════════════════════════════════════════', 'log-quantum');
+            addLog('  RANK PROGRESSION', 'log-quantum');
+            addLog('═══════════════════════════════════════════════════════════', 'log-quantum');
+            ranks.forEach((rank, index) => {
+                const current = rank === gameState.rank ? '👉' : '  ';
+                const requiredLevel = index * 2 + 1;
+                addLog(`  ${current} ${rank} (Level ${requiredLevel}+)`);
+            });
+            addLog('═══════════════════════════════════════════════════════════', 'log-quantum');
+        }
+
+        function showInventory() {
+            addLog('═══════════════════════════════════════════════════════════', 'log-system');
+            addLog('  INVENTORY (Collectibles from missions)', 'log-system');
+            addLog('═══════════════════════════════════════════════════════════', 'log-system');
+            
+            if (gameState.inventory.length === 0) {
+                addLog('  Inventory empty. Complete missions to collect items!', 'log-info');
+            } else {
+                gameState.inventory.forEach(item => {
+                    addLog(`  📦 ${item}`);
+                });
+            }
+            addLog('═══════════════════════════════════════════════════════════', 'log-system');
+        }
+
+        function showAchievementsList() {
+            addLog('═══════════════════════════════════════════════════════════', 'log-mission');
+            addLog('  ACHIEVEMENTS', 'log-mission');
+            addLog('═══════════════════════════════════════════════════════════', 'log-mission');
+            
+            achievementsList.forEach(ach => {
+                const status = ach.unlocked ? '✅' : '🔒';
+                addLog(`  ${status} ${ach.name}: ${ach.desc}`);
+            });
+            addLog('═══════════════════════════════════════════════════════════', 'log-mission');
+        }
+
+        // ==================== FUN SIMULATION COMMANDS ====================
+        function runScan() {
+            addLog('📡 Initiating network scan...', 'log-quantum');
+            const targets = ['Satellite-7', 'DeepWeb-Node', 'Corp-Server', 'Unknown-Signal'];
+            const found = targets[Math.floor(Math.random() * targets.length)];
+            
+            setTimeout(() => addLog(`Scanning...`, 'log-info'), 1000);
+            setTimeout(() => addLog(`Detecting signals...`, 'log-info'), 2000);
+            setTimeout(() => {
+                addLog(`🎯 FOUND: ${found} [FICTIONAL]`, 'log-success');
+                addLog('⚠ This is a game simulation', 'log-error');
+            }, 3000);
+        }
+
+        function runHack(target) {
+            const t = target || 'Unknown-Target';
+            addLog(`🔓 Initiating hack simulation on: ${t}`, 'log-quantum');
+            
+            const steps = ['Bypassing firewall...', 'Injecting payload...', 'Escalating privileges...', 'Access granted!'];
+            let step = 0;
+            
+            const interval = setInterval(() => {
+                if (step < steps.length) {
+                    addLog(steps[step], 'log-info');
+                    step++;
+                } else {
+                    clearInterval(interval);
+                    addLog(`✅ Hack simulation complete [FICTIONAL]`, 'log-success');
+                    addXP(10);
+                }
+            }, 1500);
+        }
+
+        function runDecrypt(data) {
+            const d = data || 'Encrypted-Packet';
+            addLog(`🔐 Decrypting: ${d}`, 'log-quantum');
+            
+            setTimeout(() => addLog('Analyzing encryption pattern...', 'log-info'), 1000);
+            setTimeout(() => addLog('Applying quantum algorithm...', 'log-info'), 2000);
+            setTimeout(() => {
+                addLog(`✅ Decrypted: [RANDOM DATA] ${Math.random().toString(36).substring(7)}`, 'log-success');
+                addXP(15);
+            }, 3500);
+        }
+
+        function runTrack(target) {
+            const t = target || 'Unknown-Signal';
+            addLog(`📍 Tracking: ${t}`, 'log-quantum');
+            
+            setTimeout(() => addLog('Triangulating signal...', 'log-info'), 1000);
+            setTimeout(() => addLog('Locking onto transponder...', 'log-info'), 2000);
+            setTimeout(() => {
+                const lat = (Math.random() * 180 - 90).toFixed(6);
+                const long = (Math.random() * 360 - 180).toFixed(6);
+                addLog(`📍 Location: ${lat}, ${long} [SIMULATED]`, 'log-success');
+                addXP(15);
+            }, 3500);
+        }
+
+        function showSysInfo() {
+            addLog('═══════════════════════════════════════════════════════════', 'log-quantum');
+            addLog('  SYSTEM SPECIFICATIONS (FICTIONAL)', 'log-quantum');
+            addLog('═══════════════════════════════════════════════════════════', 'log-quantum');
+            
+            const specs = [
+                { label: "PROCESSOR", value: "Quantum Neural Core X99 (512 Qubits)" },
+                { label: "SPEED", value: "800 Zettaflops (Simulated)" },
+                { label: "RAM", value: "1024 Yottabytes (Virtual)" },
+                { label: "STORAGE", value: "5000 Exabytes SSD Quantum" },
+                { label: "NETWORK", value: "Entanglement Mesh (0.0001ms Latency)" },
+                { label: "LOCATION", value: "Orbital Server Cluster [SIMULATED]" },
+                { label: "SECURITY", value: "AES-4096 + Quantum Key Distribution" },
+                { label: "POWER", value: "Zero-Point Energy Module (Virtual)" },
+                { label: "SATELLITES", value: "Connected to 847 Fictional Satellites" },
+                { label: "STATUS", value: "ONLINE (GAME MODE)" }
+            ];
+            
+            specs.forEach(spec => {
+                addLog(`  ${spec.label.padEnd(15)} : ${spec.value}`, 'log-spec');
+            });
+            
+            addLog('═══════════════════════════════════════════════════════════', 'log-quantum');
+            addLog('  ⚠ ALL SPECS ARE FICTIONAL FOR GAME PURPOSES ⚠', 'log-error');
+        }
+
+        // ==================== RANDOM SYSTEM STATS ====================
+        setInterval(() => {
+            try {
+                document.getElementById('cpuVal').innerText = Math.floor(Math.random() * 40) + 10;
+                document.getElementById('qubitVal').innerText = Math.floor(Math.random() * 100) + 400;
+                document.getElementById('netVal').innerText = Math.random() > 0.9 ? 'UNSTABLE' : 'STABLE';
+                document.getElementById('tempVal').innerText = Math.floor(Math.random() * 30) + 40;
+                updatePlayerStats();
+            } catch (e) {
+                console.error('System stats error:', e);
+            }
+        }, 1000);
+
+        // ==================== INITIALIZATION ====================
+        window.addEventListener('load', () => {
+            console.log('✅ Game loaded successfully!');
+            addLog('✅ System initialization complete!', 'log-success');
+            updatePlayerStats();
+            input.focus();
+        });
+    </script>
+</body>
+</html>

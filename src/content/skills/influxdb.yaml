@@ -1,0 +1,4 @@
+name: "InfluxDB"
+icon: "simple-icons:influxdb"
+category: "Backend"
+color: "text-purple-700"

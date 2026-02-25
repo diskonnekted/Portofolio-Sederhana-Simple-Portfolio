@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulator Tracker - EDUCATION ONLY</title>
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: #00ff41;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 500px;
+            border: 2px solid #00ff41;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+            background: rgba(0, 20, 0, 0.9);
+            position: relative;
+        }
+
+        /* Watermark Keamanan */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 40px;
+            color: rgba(255, 0, 0, 0.3);
+            border: 5px solid rgba(255, 0, 0, 0.3);
+            padding: 10px;
+            pointer-events: none;
+            z-index: 10;
+            text-align: center;
+        }
+
+        h2 {
+            text-align: center;
+            border-bottom: 1px solid #00ff41;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            background: #000;
+            border: 1px solid #00ff41;
+            color: #fff;
+            padding: 10px;
+            font-family: inherit;
+        }
+
+        button {
+            background: #00ff41;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: #00cc33;
+        }
+
+        .screen {
+            height: 250px;
+            border: 1px dashed #00ff41;
+            margin-top: 20px;
+            position: relative;
+            background: radial-gradient(circle, #001100 0%, #000000 100%);
+            overflow: hidden;
+        }
+
+        /* Animasi Satelit */
+        .satellite {
+            width: 20px;
+            height: 20px;
+            background-color: #fff;
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 0 10px #fff;
+            display: none;
+        }
+
+        .orbit {
+            width: 200px;
+            height: 200px;
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+
+        .log-console {
+            height: 100px;
+            overflow-y: auto;
+            font-size: 12px;
+            margin-top: 10px;
+            border-top: 1px solid #333;
+            padding-top: 5px;
+            color: #00cc33;
+        }
+
+        .coords {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Scanline effect */
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 255, 65, 0.5);
+            position: absolute;
+            animation: scan 2s linear infinite;
+            display: none;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        @keyframes orbit-anim {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        @keyframes satellite-move {
+            0% { top: 50%; left: 50%; margin-top: -100px; margin-left: 0; }
+            25% { top: 50%; left: 50%; margin-top: 0; margin-left: 100px; }
+            50% { top: 50%; left: 50%; margin-top: 100px; margin-left: 0; }
+            75% { top: 50%; left: 50%; margin-top: 0; margin-left: -100px; }
+            100% { top: 50%; left: 50%; margin-top: -100px; margin-left: 0; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="watermark">SIMULATION MODE<br>NOT REAL</div>
+        <h2>SATELLITE TRACKER SIM</h2>
+        
+        <div class="input-group">
+            <input type="text" id="phoneNumber" placeholder="Masukkan Nomor Target (Dummy)">
+            <button onclick="startTracking()">TRACK</button>
+        </div>
+
+        <div class="screen" id="mapScreen">
+            <div class="orbit" id="orbitRing"></div>
+            <div class="satellite" id="sat"></div>
+            <div class="scanline" id="scanline"></div>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #00ff41; font-size: 10px;">TARGET AREA</div>
+        </div>
+
+        <div class="coords" id="coordsDisplay">
+            LAT: 00.0000 | LONG: 00.0000
+        </div>
+
+        <div class="log-console" id="consoleLog">
+            > System Ready...<br>
+            > Waiting for input...
+        </div>
+    </div>
+
+    <script>
+        function log(message) {
+            const consoleDiv = document.getElementById('consoleLog');
+            const time = new Date().toLocaleTimeString();
+            consoleDiv.innerHTML += `> [${time}] ${message}<br>`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        function randomCoords() {
+            const lat = (Math.random() * 180 - 90).toFixed(6);
+            const long = (Math.random() * 360 - 180).toFixed(6);
+            return { lat, long };
+        }
+
+        function startTracking() {
+            const phone = document.getElementById('phoneNumber').value;
+            const sat = document.getElementById('sat');
+            const orbit = document.getElementById('orbitRing');
+            const scanline = document.getElementById('scanline');
+            const coordsDisplay = document.getElementById('coordsDisplay');
+
+            if (!phone) {
+                log("ERROR: No target input.");
+                return;
+            }
+
+            // Reset UI
+            coordsDisplay.style.display = 'none';
+            sat.style.display = 'none';
+            orbit.style.display = 'none';
+            scanline.style.display = 'none';
+            orbit.style.animation = 'none';
+            sat.style.animation = 'none';
+
+            log(`Initiating trace on ${phone}...`);
+            
+            // Simulasi Proses
+            setTimeout(() => { log("Connecting to nearest BTS tower..."); }, 1000);
+            setTimeout(() => { log("Bypassing encryption layer (SIMULATED)..."); }, 2500);
+            setTimeout(() => { 
+                log("Requesting Satellite Uplink..."); 
+                orbit.style.display = 'block';
+                orbit.style.animation = 'orbit-anim 4s linear infinite';
+            }, 4000);
+            
+            setTimeout(() => { 
+                log("Satellite Lock Acquired."); 
+                sat.style.display = 'block';
+                sat.style.animation = 'satellite-move 4s linear infinite';
+                scanline.style.display = 'block';
+            }, 6000);
+
+            setTimeout(() => {
+                const coords = randomCoords();
+                coordsDisplay.style.display = 'block';
+                coordsDisplay.innerHTML = `LAT: ${coords.lat} | LONG: ${coords.long}`;
+                log(`Target Located: ${coords.lat}, ${coords.long}`);
+                log("WARNING: THIS IS A SIMULATION");
+            }, 8000);
+        }
+    </script>
+</body>
+</html>

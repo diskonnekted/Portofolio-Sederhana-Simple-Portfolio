@@ -1,0 +1,4 @@
+name: "PostgreSQL"
+icon: "simple-icons:postgresql"
+category: "Backend"
+color: "text-blue-500"

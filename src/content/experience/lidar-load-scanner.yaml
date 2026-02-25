@@ -1,0 +1,4 @@
+role: "IoT System Engineer"
+company: "Independent Project"
+period: "Jan 2026"
+description: "Developed 'Lidar Load Scanner', an IoT-based truck load monitoring system using VL53L1X LiDAR and ESP32-CAM. Features real-time volume measurement, state machine detection logic, and a web dashboard for data visualization."

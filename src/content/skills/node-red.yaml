@@ -1,0 +1,4 @@
+name: "Node-RED"
+icon: "simple-icons:nodered"
+category: "Backend"
+color: "text-red-700"

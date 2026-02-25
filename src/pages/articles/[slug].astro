@@ -1,0 +1,89 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import { getCollection } from 'astro:content';
+import { Icon } from 'astro-icon/components';
+
+export async function getStaticPaths() {
+  const articles = await getCollection('articles');
+  return articles.map((article) => ({
+    params: { slug: article.slug },
+    props: { article },
+  }));
+}
+
+const { article } = Astro.props;
+const { Content } = await article.render();
+
+const formatDate = (date: Date) => {
+  return new Date(date).toLocaleDateString('id-ID', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+---
+
+<BaseLayout title={`${article.data.title} | Arif Susilo`}>
+  <Navbar />
+  
+  <main class="pt-24 pb-16 px-4 bg-slate-50 dark:bg-slate-900 min-h-screen">
+    <article class="max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-3xl shadow-lg overflow-hidden border border-slate-100 dark:border-slate-700">
+      <div class="aspect-video w-full overflow-hidden bg-slate-200 dark:bg-slate-700 relative">
+        {article.data.coverImage ? (
+          <img 
+            src={article.data.coverImage} 
+            alt={article.data.title}
+            class="w-full h-full object-cover"
+          />
+        ) : (
+          <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500 to-cyan-600 text-white">
+            <Icon name="ph:article" class="w-20 h-20 opacity-50" />
+          </div>
+        )}
+      </div>
+
+      <div class="p-8 md:p-12">
+        <header class="mb-8 border-b border-slate-100 dark:border-slate-700 pb-8">
+          <a href="/articles" class="inline-flex items-center text-emerald-600 dark:text-emerald-400 font-medium mb-6 hover:underline">
+            <Icon name="ph:arrow-left" class="w-4 h-4 mr-2" />
+            Kembali ke Artikel
+          </a>
+          
+          <h1 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4 leading-tight">
+            {article.data.title}
+          </h1>
+          
+          <div class="flex items-center gap-4 text-slate-500 dark:text-slate-400 text-sm">
+            <div class="flex items-center gap-1.5">
+              <Icon name="ph:calendar-blank" class="w-4 h-4" />
+              <time datetime={article.data.publishedDate.toISOString()}>
+                {formatDate(article.data.publishedDate)}
+              </time>
+            </div>
+            <span>•</span>
+            <div class="flex items-center gap-1.5">
+              <Icon name="ph:user" class="w-4 h-4" />
+              <span>Arif Susilo</span>
+            </div>
+          </div>
+        </header>
+        
+        <div class="prose prose-lg prose-slate dark:prose-invert max-w-none 
+          prose-headings:font-bold prose-headings:tracking-tight 
+          prose-h1:text-3xl prose-h1:mb-6 
+          prose-p:leading-relaxed prose-p:mb-6 
+          prose-a:text-emerald-600 dark:prose-a:text-emerald-400 prose-a:no-underline hover:prose-a:underline 
+          prose-img:rounded-2xl prose-img:shadow-lg prose-img:my-8 
+          prose-blockquote:border-l-4 prose-blockquote:border-emerald-500 prose-blockquote:pl-4 prose-blockquote:italic 
+          prose-code:text-emerald-600 dark:prose-code:text-emerald-400 prose-code:bg-slate-100 dark:prose-code:bg-slate-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:font-medium 
+          prose-pre:bg-slate-900 prose-pre:text-slate-50 prose-pre:rounded-xl prose-pre:shadow-lg">
+          <Content />
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <Footer />
+</BaseLayout>

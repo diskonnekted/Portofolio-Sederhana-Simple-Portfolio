@@ -1,0 +1,90 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import { getCollection } from 'astro:content';
+import { Icon } from 'astro-icon/components';
+
+const articles = await getCollection('articles');
+const sortedArticles = articles.sort((a, b) => b.data.publishedDate.valueOf() - a.data.publishedDate.valueOf());
+
+const formatDate = (date: Date) => {
+  return new Date(date).toLocaleDateString('id-ID', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+---
+
+<BaseLayout title="Artikel | Arif Susilo">
+  <Navbar />
+  
+  <main class="pt-24 pb-16 px-4 bg-slate-50 dark:bg-slate-900 min-h-screen">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-12">
+        <h1 class="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4">
+          Artikel & Tulisan
+        </h1>
+        <p class="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+          Berbagi pemikiran, tutorial, dan wawasan seputar dunia IoT, Embedded System, dan Teknologi.
+        </p>
+      </div>
+
+      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-2">
+        {sortedArticles.map((article) => (
+          <a href={`/articles/${article.slug}`} class="group block bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 dark:border-slate-700">
+            <div class="aspect-video w-full overflow-hidden bg-slate-200 dark:bg-slate-700 relative">
+              {article.data.coverImage ? (
+                <img 
+                  src={article.data.coverImage} 
+                  alt={article.data.title}
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              ) : (
+                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500 to-cyan-600 text-white">
+                  <Icon name="ph:article" class="w-12 h-12 opacity-50" />
+                </div>
+              )}
+              <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
+            </div>
+            
+            <div class="p-6">
+              <div class="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400 mb-3 font-medium">
+                <Icon name="ph:calendar-blank" class="w-4 h-4" />
+                <time datetime={article.data.publishedDate.toISOString()}>
+                  {formatDate(article.data.publishedDate)}
+                </time>
+              </div>
+              
+              <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-2">
+                {article.data.title}
+              </h2>
+              
+              <p class="text-slate-600 dark:text-slate-300 mb-4 line-clamp-3 text-sm leading-relaxed">
+                {article.data.description}
+              </p>
+              
+              <div class="flex items-center text-emerald-600 dark:text-emerald-400 font-medium text-sm group-hover:translate-x-1 transition-transform">
+                Baca Selengkapnya
+                <Icon name="ph:arrow-right" class="w-4 h-4 ml-1" />
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      {sortedArticles.length === 0 && (
+        <div class="text-center py-20">
+          <div class="bg-slate-100 dark:bg-slate-800 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Icon name="ph:pencil-slash" class="w-8 h-8 text-slate-400" />
+          </div>
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-2">Belum ada artikel</h3>
+          <p class="text-slate-500 dark:text-slate-400">Silakan kembali lagi nanti untuk membaca tulisan terbaru.</p>
+        </div>
+      )}
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>

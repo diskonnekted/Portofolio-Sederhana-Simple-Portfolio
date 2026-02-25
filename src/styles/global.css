@@ -1,0 +1,20 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --color-primary: var(--color-slate-900);
+  --color-primary-foreground: var(--color-slate-50);
+  --color-accent: var(--color-emerald-500);
+  --color-accent-foreground: var(--color-white);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-50 transition-colors duration-300;
+  }
+}

@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+---
+
+<BaseLayout title="Terminal | Quantum Net Trace Simulation">
+  <Navbar />
+  
+  <main class="h-[calc(100vh-64px)] w-full overflow-hidden bg-black pt-16">
+    <iframe 
+      src="/supertrack.html" 
+      class="w-full h-full border-none"
+      title="Quantum Net Trace Terminal"
+    ></iframe>
+  </main>
+</BaseLayout>
+
+<style>
+  /* Menghilangkan scrollbar pada body saat di halaman terminal */
+  :global(body) {
+    overflow: hidden;
+  }
+</style>
